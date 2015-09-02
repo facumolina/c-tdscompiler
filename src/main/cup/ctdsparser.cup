@@ -1,0 +1,35 @@
+import java_cup.runtime.*;
+/*­­­­ Sección componentes de código de usuario ­­­­*/
+parser code {:
+    public void report_error(String message, Object info) {
+       	StringBuffer m = new StringBuffer("Error");
+		System.out.println("Mensaje: "+message);
+		System.out.println("info: "+info.toString());
+		if(info instanceof java_cup.runtime.Symbol) {
+			java_cup.runtime.Symbol s=((java_cup.runtime.Symbol)info);
+			/* Comprueba si el numero de línea es mayor o igual que cero */
+			if(s.left >= 0) {
+				m.append(" en linea "+(s.left+1));
+				/*Comprueba si el numero de columna es mayoro igual que cero */
+				if (s.right >= 0)
+					m.append(", y columna "+(s.right+1));
+			}
+		}
+		m.append(" : "+message);
+		System.err.println(m);
+    }
+    public void report_fatal_error(String message, Object info) {
+       	report_error(message, info);
+		System.exit(1);
+    }
+ 
+:};
+/*­­­ Declaración de la lista de símbolos de la gramática ­­­­­*/
+ 
+/* Produciones de flujo normal */
+terminal Integer int_literal;
+terminal Float float_literal;
+non terminal Object programa;
+
+/* ­­­­­­­­­­­­­­ Declaración de la gramática  ­­­­­­­­­­­ */
+programa ::= programa int_literal:i {: System.out.println(i);  :} | int_literal:i	{: System.out.println(i); :} | float_literal:f {: System.out.println(f); :} ;
