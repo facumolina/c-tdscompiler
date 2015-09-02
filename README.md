@@ -10,7 +10,7 @@ C-TDS Compiler will use the following open source tools:
 * [Java] - Java programming language.
 * [Junit] - Framework to write repeatable tests.
 * [JFlex] - Lexical analyzer generator (also known as scanner generator) for Java, written in Java.
-
+* [Absolute README link](https://jflex.de)
 Installation
 ============
 ...
