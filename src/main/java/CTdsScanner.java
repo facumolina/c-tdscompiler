@@ -716,7 +716,7 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            { throw new Error("Illegal character <"+yytext()+">");
+            { return symbol(sym.ERROR,yytext());
             }
           case 48: break;
           case 2: 
@@ -724,11 +724,11 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 49: break;
           case 3: 
-            { return symbol(sym.DOT);
+            { return symbol(sym.DOT,yytext());
             }
           case 50: break;
           case 4: 
-            { return symbol(sym.ID);
+            { return symbol(sym.ID,yytext());
             }
           case 51: break;
           case 5: 
@@ -736,71 +736,71 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 52: break;
           case 6: 
-            { return symbol(sym.DIVIDE);
+            { return symbol(sym.DIVIDE,yytext());
             }
           case 53: break;
           case 7: 
-            { return symbol(sym.TIMES);
+            { return symbol(sym.TIMES,yytext());
             }
           case 54: break;
           case 8: 
-            { return symbol(sym.PLUS);
+            { return symbol(sym.PLUS,yytext());
             }
           case 55: break;
           case 9: 
-            { return symbol(sym.MINUS);
+            { return symbol(sym.MINUS,yytext());
             }
           case 56: break;
           case 10: 
-            { return symbol(sym.MOD);
+            { return symbol(sym.MOD,yytext());
             }
           case 57: break;
           case 11: 
-            { return symbol(sym.LESS);
+            { return symbol(sym.LESS,yytext());
             }
           case 58: break;
           case 12: 
-            { return symbol(sym.GTR);
+            { return symbol(sym.GTR,yytext());
             }
           case 59: break;
           case 13: 
-            { return symbol(sym.EQ);
+            { return symbol(sym.EQ,yytext());
             }
           case 60: break;
           case 14: 
-            { return symbol(sym.NOT);
+            { return symbol(sym.NOT,yytext());
             }
           case 61: break;
           case 15: 
-            { return symbol(sym.L_PAREN);
+            { return symbol(sym.L_PAREN,yytext());
             }
           case 62: break;
           case 16: 
-            { return symbol(sym.R_PAREN);
+            { return symbol(sym.R_PAREN,yytext());
             }
           case 63: break;
           case 17: 
-            { return symbol(sym.L_BRACE);
+            { return symbol(sym.L_BRACE,yytext());
             }
           case 64: break;
           case 18: 
-            { return symbol(sym.R_BRACE);
+            { return symbol(sym.R_BRACE,yytext());
             }
           case 65: break;
           case 19: 
-            { return symbol(sym.L_BRACKET);
+            { return symbol(sym.L_BRACKET,yytext());
             }
           case 66: break;
           case 20: 
-            { return symbol(sym.R_BRACKET);
+            { return symbol(sym.R_BRACKET,yytext());
             }
           case 67: break;
           case 21: 
-            { return symbol(sym.COMMA);
+            { return symbol(sym.COMMA,yytext());
             }
           case 68: break;
           case 22: 
-            { return symbol(sym.SEMI_COLON);
+            { return symbol(sym.SEMI_COLON,yytext());
             }
           case 69: break;
           case 23: 
@@ -808,39 +808,39 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 70: break;
           case 24: 
-            { return symbol(sym.IF);
+            { return symbol(sym.IF,yytext());
             }
           case 71: break;
           case 25: 
-            { return symbol(sym.PLUS_EQ);
+            { return symbol(sym.PLUS_EQ,yytext());
             }
           case 72: break;
           case 26: 
-            { return symbol(sym.MINUS_EQ);
+            { return symbol(sym.MINUS_EQ,yytext());
             }
           case 73: break;
           case 27: 
-            { return symbol(sym.LESS_EQ);
+            { return symbol(sym.LESS_EQ,yytext());
             }
           case 74: break;
           case 28: 
-            { return symbol(sym.GTR_EQ);
+            { return symbol(sym.GTR_EQ,yytext());
             }
           case 75: break;
           case 29: 
-            { return symbol(sym.EQ_EQ);
+            { return symbol(sym.EQ_EQ,yytext());
             }
           case 76: break;
           case 30: 
-            { return symbol(sym.NOT_EQ);
+            { return symbol(sym.NOT_EQ,yytext());
             }
           case 77: break;
           case 31: 
-            { return symbol(sym.AND);
+            { return symbol(sym.AND,yytext());
             }
           case 78: break;
           case 32: 
-            { return symbol(sym.OR);
+            { return symbol(sym.OR,yytext());
             }
           case 79: break;
           case 33: 
@@ -848,11 +848,11 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 80: break;
           case 34: 
-            { return symbol(sym.INT);
+            { return symbol(sym.INT,yytext());
             }
           case 81: break;
           case 35: 
-            { return symbol(sym.FOR);
+            { return symbol(sym.FOR,yytext());
             }
           case 82: break;
           case 36: 
@@ -860,19 +860,19 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 83: break;
           case 37: 
-            { return symbol(sym.ELSE);
+            { return symbol(sym.ELSE,yytext());
             }
           case 84: break;
           case 38: 
-            { return symbol(sym.VOID);
+            { return symbol(sym.VOID,yytext());
             }
           case 85: break;
           case 39: 
-            { return symbol(sym.CLASS);
+            { return symbol(sym.CLASS,yytext());
             }
           case 86: break;
           case 40: 
-            { return symbol(sym.FLOAT);
+            { return symbol(sym.FLOAT,yytext());
             }
           case 87: break;
           case 41: 
@@ -880,27 +880,27 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 88: break;
           case 42: 
-            { return symbol(sym.BREAK);
+            { return symbol(sym.BREAK,yytext());
             }
           case 89: break;
           case 43: 
-            { return symbol(sym.WHILE);
+            { return symbol(sym.WHILE,yytext());
             }
           case 90: break;
           case 44: 
-            { return symbol(sym.EXTERN);
+            { return symbol(sym.EXTERN,yytext());
             }
           case 91: break;
           case 45: 
-            { return symbol(sym.RETURN);
+            { return symbol(sym.RETURN,yytext());
             }
           case 92: break;
           case 46: 
-            { return symbol(sym.BOOLEAN);
+            { return symbol(sym.BOOLEAN,yytext());
             }
           case 93: break;
           case 47: 
-            { return symbol(sym.CONTINUE);
+            { return symbol(sym.CONTINUE,yytext());
             }
           case 94: break;
           default:

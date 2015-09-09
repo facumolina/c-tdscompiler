@@ -50,19 +50,19 @@ import java_cup.runtime.*;
 %%
 
 /* Keywords */
-"class"                                { return symbol(sym.CLASS); }
-"int"                                  { return symbol(sym.INT); }
-"float"                                { return symbol(sym.FLOAT); }
-"boolean"                              { return symbol(sym.BOOLEAN); }
-"if"                                   { return symbol(sym.IF); }
-"else"                                 { return symbol(sym.ELSE); }
-"for"                                  { return symbol(sym.FOR); }
-"while"                                { return symbol(sym.WHILE); }
-"break"                                { return symbol(sym.BREAK); }
-"continue"                             { return symbol(sym.CONTINUE); }
-"extern"                               { return symbol(sym.EXTERN); }
-"return"                               { return symbol(sym.RETURN); }
-"void"                                 { return symbol(sym.VOID); }
+"class"                                { return symbol(sym.CLASS,yytext()); }
+"int"                                  { return symbol(sym.INT,yytext()); }
+"float"                                { return symbol(sym.FLOAT,yytext()); }
+"boolean"                              { return symbol(sym.BOOLEAN,yytext()); }
+"if"                                   { return symbol(sym.IF,yytext()); }
+"else"                                 { return symbol(sym.ELSE,yytext()); }
+"for"                                  { return symbol(sym.FOR,yytext()); }
+"while"                                { return symbol(sym.WHILE,yytext()); }
+"break"                                { return symbol(sym.BREAK,yytext()); }
+"continue"                             { return symbol(sym.CONTINUE,yytext()); }
+"extern"                               { return symbol(sym.EXTERN,yytext()); }
+"return"                               { return symbol(sym.RETURN,yytext()); }
+"void"                                 { return symbol(sym.VOID,yytext()); }
 
 /* Literals */
 {int_literal}                          { return symbol(sym.INT_LITERAL, new Integer(yytext()));}
@@ -71,45 +71,46 @@ import java_cup.runtime.*;
 "false"                                { return symbol(sym.FALSE,false);}
 
 /* Operators */
-"+"                                    { return symbol(sym.PLUS); }
-"-"                                    { return symbol(sym.MINUS); }
-"*"                                    { return symbol(sym.TIMES); }
-"/"                                    { return symbol(sym.DIVIDE); }
-"%"                                    { return symbol(sym.MOD); }
+"+"                                    { return symbol(sym.PLUS,yytext()); }
+"-"                                    { return symbol(sym.MINUS,yytext()); }
+"*"                                    { return symbol(sym.TIMES,yytext()); }
+"/"                                    { return symbol(sym.DIVIDE,yytext()); }
+"%"                                    { return symbol(sym.MOD,yytext()); }
 
-"<"                                    { return symbol(sym.LESS); }
-">"                                    { return symbol(sym.GTR); }
-"="                                    { return symbol(sym.EQ); }
+"<"                                    { return symbol(sym.LESS,yytext()); }
+">"                                    { return symbol(sym.GTR,yytext()); }
+"="                                    { return symbol(sym.EQ,yytext()); }
 
-"+="                                   { return symbol(sym.PLUS_EQ);}
-"-="                                   { return symbol(sym.MINUS_EQ);}
-"<="                                   { return symbol(sym.LESS_EQ);}
-">="                                   { return symbol(sym.GTR_EQ);}
-"=="                                   { return symbol(sym.EQ_EQ); }
-"!"                                    { return symbol(sym.NOT); }
-"!="                                   { return symbol(sym.NOT_EQ);}
-"&&"                                   { return symbol(sym.AND); }
-"||"                                   { return symbol(sym.OR); }
+"+="                                   { return symbol(sym.PLUS_EQ,yytext());}
+"-="                                   { return symbol(sym.MINUS_EQ,yytext());}
+"<="                                   { return symbol(sym.LESS_EQ,yytext());}
+">="                                   { return symbol(sym.GTR_EQ,yytext());}
+"=="                                   { return symbol(sym.EQ_EQ,yytext()); }
+"!"                                    { return symbol(sym.NOT,yytext()); }
+"!="                                   { return symbol(sym.NOT_EQ,yytext());}
+"&&"                                   { return symbol(sym.AND,yytext()); }
+"||"                                   { return symbol(sym.OR,yytext()); }
 
 
 /* Delimiters */
-"("                                    { return symbol(sym.L_PAREN); }
-")"                                    { return symbol(sym.R_PAREN); }
-"{"                                    { return symbol(sym.L_BRACE); }
-"}"                                    { return symbol(sym.R_BRACE); } 
-"["                                    { return symbol(sym.L_BRACKET); }
-"]"                                    { return symbol(sym.R_BRACKET); }
+"("                                    { return symbol(sym.L_PAREN,yytext()); }
+")"                                    { return symbol(sym.R_PAREN,yytext()); }
+"{"                                    { return symbol(sym.L_BRACE,yytext()); }
+"}"                                    { return symbol(sym.R_BRACE,yytext()); } 
+"["                                    { return symbol(sym.L_BRACKET,yytext()); }
+"]"                                    { return symbol(sym.R_BRACKET,yytext()); }
 
-"."                                    { return symbol(sym.DOT); }
-","                                    { return symbol(sym.COMMA); }
-";"                                    { return symbol(sym.SEMI_COLON); }
+"."                                    { return symbol(sym.DOT,yytext()); }
+","                                    { return symbol(sym.COMMA,yytext()); }
+";"                                    { return symbol(sym.SEMI_COLON,yytext()); }
 
 /* Identifiers */
-{id}                                   { return symbol(sym.ID); }
+{id}                                   { return symbol(sym.ID,yytext()); }
 
 /* Comments */
 {comment}                              { /* Ignore comment */ }
 {white_space}                          { /* Ignore whitespace */ }
 
 /* Error */
-[^]                                    { throw new Error("Illegal character <"+yytext()+">"); }
+//[^]                                    { throw new Error("Illegal character <"+yytext()+">"); }
+[^]                                    { return symbol(sym.ERROR,yytext()); }
