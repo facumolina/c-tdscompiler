@@ -1,0 +1,17 @@
+/* Class description */
+class A {
+	
+	// Method declarations
+
+	/* Method with statements declarations */
+	int methodInt(int x) {
+
+		// For statement
+		for i = 0; i < 10 {
+			i += 1;
+		}
+
+		return;
+	}
+
+}

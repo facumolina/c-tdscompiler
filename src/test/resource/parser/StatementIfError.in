@@ -1,0 +1,18 @@
+/* Class description */
+class A {
+	
+	// Method declarations
+
+	/* Method with statements declarations */
+	int methodInt(int x) {
+
+		// If else statement
+		if (x) {
+			y = x;
+		} ELSE {
+			y = x + 1;
+		}
+
+	}
+
+}

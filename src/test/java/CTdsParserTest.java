@@ -8,9 +8,36 @@ import java.io.PrintStream;
 import java.io.Reader;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.FixMethodOrder;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /* This class provides a set of tests for the CTds Parser */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CTdsParserTest {
+
+	@BeforeClass
+    public static void initTest() {
+        System.out.println("----------------------------------- Testing CTdsParser ---------------------------------");;
+    	System.out.println();
+    }
+
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+   		protected void starting(Description description) {
+    		System.out.println("Starting test: " + description.getMethodName());
+   		}
+	};
+
+	@After
+	public void after() {
+		System.out.println();
+	}
 
 	/* 
 	 * Test the grammar rules that involves class declarations. 
@@ -21,7 +48,7 @@ public class CTdsParserTest {
 	}
 
 	@Test
-	public void ClassDeclarationErrorTest() throws IOException {
+	public void ClassDeclarationWithErrorTest() throws IOException {
 		assertEquals(genericTest("ClassDeclarationError.in"),false);
 	}
 
@@ -34,7 +61,7 @@ public class CTdsParserTest {
 	}
 
 	@Test
-	public void FieldDeclarationErrorTest() throws IOException {
+	public void FieldDeclarationWithErrorTest() throws IOException {
 		assertEquals(genericTest("FieldDeclarationError.in"),false);
 	}
 
@@ -48,7 +75,7 @@ public class CTdsParserTest {
 	}
 
 	@Test 
-	public void MethodDeclarationErrorTest() throws IOException {
+	public void MethodDeclarationWithErrorTest() throws IOException {
 		assertEquals(genericTest("MethodDeclarationError.in"),false);
 	}
 
@@ -62,7 +89,7 @@ public class CTdsParserTest {
 	}
 
 	@Test 
-	public void MethodBodyFieldDeclErrorTest() throws IOException {
+	public void MethodBodyFieldDeclWithErrorTest() throws IOException {
 		assertEquals(genericTest("MethodBodyFieldDeclError.in"),false);
 	}
 
@@ -76,7 +103,7 @@ public class CTdsParserTest {
 	}
 
 	@Test 
-	public void StatementAssignmentErrorTest() throws IOException {
+	public void StatementAssignmentWithErrorTest() throws IOException {
 		assertEquals(genericTest("StatementAssignmentError.in"),false);
 	}
 
@@ -86,8 +113,38 @@ public class CTdsParserTest {
 	}
 
 	@Test 
-	public void StatementMethodCallErrorTest() throws IOException {
+	public void StatementMethodCallWithErrorTest() throws IOException {
 		assertEquals(genericTest("StatementMethodCallError.in"),false);
+	}
+
+	@Test 
+	public void StatementIfOkTest() throws IOException {
+		assertEquals(genericTest("StatementIfOk.in"),true);
+	}
+
+	@Test 
+	public void StatementIfWithErrorTest() throws IOException {
+		assertEquals(genericTest("StatementIfError.in"),false);
+	}
+
+	@Test 
+	public void StatementLoopsOkTest() throws IOException {
+		assertEquals(genericTest("StatementLoopsOk.in"),true);
+	}
+
+	@Test 
+	public void StatementLoopsWithErrorTest() throws IOException {
+		assertEquals(genericTest("StatementLoopsError.in"),false);
+	}
+
+	@Test 
+	public void StatementExpresionOkTest() throws IOException {
+		assertEquals(genericTest("StatementExpressionOk.in"),true);
+	}
+
+	@Test 
+	public void StatementExpressionErrorTest() throws IOException {
+		assertEquals(genericTest("StatementExpressionError.in"),false);
 	}
 
 	/* 
@@ -102,6 +159,7 @@ public class CTdsParserTest {
 		boolean do_debug_parse = false;
     
 		CTdsParser parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
+		parser.errors = 0;
 		Symbol parseTree = null;
 		try {
 			if (do_debug_parse)

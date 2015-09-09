@@ -1,0 +1,26 @@
+/* Class description */
+class A {
+	
+	// Method declarations
+
+	int methodInt(int x) {
+
+		int y;
+
+		// If statements with expressions
+		if (x==y) {
+			// Do something
+		}
+
+		if (A.getValue()=x) {
+			// Do something
+		}
+
+		if (!B) {
+			// Do something
+		}
+		return y;
+	}
+
+
+}
