@@ -1,0 +1,20 @@
+/* Class description */
+class A {
+	
+	// Field declarations
+
+	// Method declarations
+
+	/* Method with statements declarations */
+	int methodInt(int x) {
+
+		// Method assignment statements
+		y = 2;
+
+		2 = x;
+
+		b.someAttribute.anotherAttribute[x] = x;
+		
+	}
+
+}

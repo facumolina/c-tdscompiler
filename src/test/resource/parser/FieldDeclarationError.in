@@ -1,0 +1,11 @@
+/* Class description */
+class A {
+	
+	// Field declarations
+	int x ;
+
+	Int a,b,c;
+
+	// Method Declarations
+	
+}

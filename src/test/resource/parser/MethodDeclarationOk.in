@@ -1,0 +1,16 @@
+/* Class description */
+class A {
+	
+	// Field declarations
+
+	// Method declarations
+	
+	int methodInt() {
+		// Do something
+	}
+
+	int methodInt(int x) extern;
+
+	void methodVoid(int x,int y) extern;
+
+}

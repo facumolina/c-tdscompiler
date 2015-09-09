@@ -1,0 +1,18 @@
+/* Class description */
+class A {
+	
+	// Fields declarations
+
+	// Methods declarations
+
+	/* Method with fields declarations */
+	int methodInt(int x) {
+
+		// Method field declarations
+		int i;
+
+		int A[5];
+		
+	}
+
+}

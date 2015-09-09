@@ -1,0 +1,18 @@
+/* Class description */
+class A {
+	
+	// Field declarations
+
+	// Method declarations
+
+	/* Method with statements declarations */
+	int methodInt(int x) {
+
+		// Method call statements
+		B.someMethod(x);
+
+		B.someAttribtue.someMethod(x,y.attribute,z);
+
+	}
+
+}

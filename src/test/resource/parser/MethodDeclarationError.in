@@ -1,0 +1,10 @@
+/* Class description */
+class A {
+	
+	// Field declarations
+
+	// Method declarations
+
+	Void methodVoid(int x,int y);
+
+}
