@@ -1,35 +1,286 @@
 import java_cup.runtime.*;
-/*­­­­ Sección componentes de código de usuario ­­­­*/
+
 parser code {:
+
+	public static Scanner s;
+	public static int errors = 0;
+
     public void report_error(String message, Object info) {
-       	StringBuffer m = new StringBuffer("Error");
-		System.out.println("Mensaje: "+message);
-		System.out.println("info: "+info.toString());
+       	/*StringBuffer m = new StringBuffer("Error");
+		//System.out.println("Message: "+message);
+		//System.out.println("Info: "+info.toString());
 		if(info instanceof java_cup.runtime.Symbol) {
 			java_cup.runtime.Symbol s=((java_cup.runtime.Symbol)info);
-			/* Comprueba si el numero de línea es mayor o igual que cero */
+			
 			if(s.left >= 0) {
-				m.append(" en linea "+(s.left+1));
-				/*Comprueba si el numero de columna es mayoro igual que cero */
+				m.append(" in line "+(s.left+1));
+				
 				if (s.right >= 0)
-					m.append(", y columna "+(s.right+1));
+					m.append(", and column "+(s.right+1));
 			}
 		}
 		m.append(" : "+message);
-		System.err.println(m);
+		System.err.println(m);*/
+		if (info instanceof String){
+			errors++; 
+      		System.err.println("  "+ errors + "==> " + info + " "+ message + 
+					"\n       Parsing resumed from 2nd token before \n");
+    	} else {
+    		StringBuffer m = new StringBuffer("Error ");
+    		if (info instanceof java_cup.runtime.Symbol) 
+     	   	m.append( "("+info.toString()+")" );     
+    		m.append(" : "+message);   
+    		System.err.println(m);
+    	}
     }
-    public void report_fatal_error(String message, Object info) {
+
+    public void syntax_error(Symbol cur_token){
+		System.err.println("Syntax error at "+cur_token.toString());
+    }
+
+    /* Reports a non-recoverable error occurs*/
+    /*public void report_fatal_error(String message, Object info) {
        	report_error(message, info);
 		System.exit(1);
-    }
+    }*/
  
 :};
-/*­­­ Declaración de la lista de símbolos de la gramática ­­­­­*/
  
-/* Produciones de flujo normal */
-terminal Integer int_literal;
-terminal Float float_literal;
-non terminal Object programa;
+/* Terminals */
+terminal CLASS;
+terminal INT;
+terminal FLOAT;
+terminal BOOLEAN;
+terminal IF;
+terminal ELSE;
+terminal FOR;
+terminal WHILE;
+terminal BREAK;
+terminal CONTINUE;
+terminal EXTERN;
+terminal RETURN;
+terminal VOID;
 
-/* ­­­­­­­­­­­­­­ Declaración de la gramática  ­­­­­­­­­­­ */
-programa ::= programa int_literal:i {: System.out.println(i);  :} | int_literal:i	{: System.out.println(i); :} | float_literal:f {: System.out.println(f); :} ;
+terminal PLUS;
+terminal MINUS;
+terminal TIMES;
+terminal DIVIDE;
+terminal MOD;
+
+terminal LESS;
+terminal GTR;
+terminal EQ;
+terminal PLUS_EQ;
+terminal MINUS_EQ;
+terminal LESS_EQ;
+terminal GTR_EQ;
+terminal EQ_EQ;
+terminal NOT;
+terminal NOT_EQ;
+terminal AND;
+terminal OR;
+
+terminal L_BRACE;
+terminal R_BRACE;
+terminal L_BRACKET;
+terminal R_BRACKET;
+terminal L_PAREN;
+terminal R_PAREN;
+terminal uNOT;
+terminal DOT;
+terminal COMMA;
+terminal SEMI_COLON;
+
+terminal Integer INT_LITERAL;
+terminal Float FLOAT_LITERAL;
+terminal String ID;
+terminal Boolean TRUE;
+terminal Boolean FALSE;
+
+/* Nonterminals */
+non terminal Object program;
+non terminal Object type;
+non terminal Object class_decl;
+non terminal Object field_decl;
+non terminal Object field_decl_list;
+non terminal Object method_decl;
+non terminal Object method_decl_list;
+non terminal Object method_body;
+non terminal Object method_call;
+non terminal Object arguments_list;
+non terminal Object arguments_list_comma;
+non terminal Object block;
+non terminal Object decl;
+non terminal Object decl_list;
+non terminal Object statement;
+non terminal Object statement_list;
+non terminal Object location;
+non terminal Object extended_location;
+
+non terminal Object expr;
+non terminal Object expr_list;
+non terminal Object expr_list_COMMA;
+non terminal Object return_expr;
+
+non terminal Object arithmetical_operator;
+non terminal Object relational_operator;
+non terminal Object equality_operator;
+non terminal Object conditional_operator;
+non terminal Object binary_operator;
+non terminal Object assign_operator;
+non terminal Object literal;
+non terminal Object bool_literal;
+
+
+precedence left LESS,GTR,EQ,LESS_EQ,GTR_EQ,EQ_EQ,NOT_EQ;
+precedence left AND,OR;
+
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIVIDE, MOD;
+
+precedence left uNOT;
+
+/* ­­­­­­­­­­­­­­ Grammar rules */
+
+/* Program */
+program ::= class_decl 
+	| class_decl program 	
+	;
+
+/* Class */
+class_decl ::= CLASS ID L_BRACE field_decl_list method_decl_list R_BRACE 
+	;
+
+/* Fields declarations */
+field_decl_list ::= field_decl_list field_decl 
+	|	/*empty field_decl_list*/
+	;
+
+field_decl ::= type decl decl_list SEMI_COLON
+	;
+
+decl ::= ID
+	| ID L_BRACKET INT_LITERAL R_BRACKET
+	;
+
+decl_list ::= decl_list COMMA decl
+	| /*empty decl_list */
+	;
+
+/* Methods declarations */
+
+method_decl_list ::= method_decl method_decl_list 
+	|  /*empty method_decl_list*/
+	;
+
+method_decl ::= type ID L_PAREN arguments_list R_PAREN method_body
+	| VOID ID L_PAREN arguments_list R_PAREN method_body
+	;
+
+arguments_list ::= type ID arguments_list_comma 
+	| 	/*empty arguments list */
+	;
+
+arguments_list_comma ::= arguments_list_comma COMMA type ID
+	|	/*empty arguments list */
+	;
+
+method_body ::= block
+	|	EXTERN SEMI_COLON
+	;
+
+block ::= L_BRACE field_decl_list statement_list R_BRACE
+	;
+
+// Statements
+statement_list ::= statement statement_list
+	|	/* empty statement list*/
+	;
+
+statement ::= location assign_operator expr SEMI_COLON
+	|	method_call SEMI_COLON
+	|	IF L_PAREN expr R_PAREN block
+	|	IF L_PAREN expr R_PAREN block ELSE block	
+	|	FOR ID EQ expr COMMA expr block
+	|	WHILE expr block
+	|	RETURN return_expr SEMI_COLON
+	|	BREAK SEMI_COLON
+	|	CONTINUE SEMI_COLON
+	|	SEMI_COLON
+	|	block
+	;
+
+location ::= ID extended_location
+	|	ID extended_location L_BRACKET expr R_BRACKET
+	;
+
+extended_location ::= extended_location DOT ID
+	|	/* emtpy extended_location */
+	;
+
+expr ::= location
+	|	method_call
+	|	literal
+	|	expr binary_operator expr
+	|	MINUS expr %prec uNOT
+	|	NOT expr %prec uNOT
+	|	L_PAREN expr R_PAREN
+	;
+
+method_call ::= ID extended_location L_PAREN expr_list R_PAREN
+	;
+
+expr_list ::= expr expr_list_COMMA
+	|	/* empty expr_list */
+	;
+
+expr_list_COMMA ::= expr_list_COMMA COMMA expr
+	|	/* empty expr_list_COMMA */
+	;
+
+literal ::= INT_LITERAL
+	|	FLOAT_LITERAL
+	|	bool_literal
+	;
+
+bool_literal ::= TRUE 
+	| 	FALSE
+	;
+
+/* Operators */
+assign_operator ::= EQ
+	|	PLUS_EQ
+	|	MINUS_EQ
+	;
+
+binary_operator ::= arithmetical_operator
+	|	relational_operator
+	|	equality_operator
+	|	conditional_operator
+	;
+
+arithmetical_operator ::= PLUS
+	|	MINUS
+	|	TIMES
+	| 	DIVIDE
+	| 	MOD
+	;
+
+relational_operator ::= LESS
+ 	| GTR
+ 	| LESS_EQ
+ 	| GTR_EQ
+ 	;
+
+equality_operator ::= EQ_EQ
+ 	| NOT_EQ
+ 	;
+
+conditional_operator ::= AND
+ 	| OR
+ 	;
+
+type ::= INT
+	| FLOAT
+	| BOOLEAN
+	;
