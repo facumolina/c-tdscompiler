@@ -5,12 +5,38 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
-import junit.framework.TestCase;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.FixMethodOrder;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /* This class provides a set of tests for the CTds Scanner generated with JFlex */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CTdsScannerTest {
+
+	@BeforeClass
+    public static void initTest() {
+        System.out.println("----------------------------------- Testing CTdsScanner ---------------------------------");;
+    	System.out.println();
+    }
+
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+   		protected void starting(Description description) {
+    		System.out.println("Starting test: " + description.getMethodName());
+   		}
+	};
+
+	@After
+	public void after() {
+		System.out.println();
+	}
 
 	@Test
 	public void testLiterals() throws IOException {
