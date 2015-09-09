@@ -1,5 +1,3 @@
-//package de.jflex.example.standalone;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,40 +6,71 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
+/* This class provides a set of tests for the CTds Scanner generated with JFlex */
+public class CTdsScannerTest {
 
+	@Test
+	public void testLiterals() throws IOException {
+		assertEquals(genericTest("literals.in","literals.out","literals.expected"),true);	
+	}
 
-public class CTdsScannerTest extends TestCase {
-	
+	@Test 
+	public void testKeywords() throws IOException {
+		assertEquals(genericTest("keywords.in","keywords.out","keywords.expected"),true);
+	}
 
-	public void testSample() throws IOException {
-		
+	@Test 
+	public void testOpertors() throws IOException {
+		assertEquals(genericTest("operators.in","operators.out","operators.expected"),true);
+	}
+
+	@Test
+	public void testDelimiters() throws IOException {
+		assertEquals(genericTest("delimiters.in","delimiters.out","delimiters.expected"),true);
+	}
+
+	@Test
+	public void testIdentifiers() throws IOException {
+		assertEquals(genericTest("identifiers.in","identifiers.out","identifiers.expected"),true);
+	}
+
+	/* Scan a file and returns true if the scanned file and the expected file are equals */
+	private boolean genericTest(String inputFile,String outputFile,String expectedFile) throws IOException {
 		String[] argv = new String[1];
-		argv[0] = "../src/test/resource/sample.in";
-		File actual = new File("sample.out");
+		argv[0] = "../src/test/resource/scanner/"+inputFile;
+		File actual = new File("../src/test/resource/scanner/"+outputFile);
 		actual.delete();
-		FileOutputStream fos = new FileOutputStream("sample.out", true);
+		FileOutputStream fos = new FileOutputStream("../src/test/resource/scanner/"+outputFile, true);
 		System.setOut(new PrintStream(fos));
 
-		CTdsScanner.main(argv);
+		CTdsScannerStandalone.main(argv);
 
 		fos.close();
 
 		BufferedReader actualContent = new BufferedReader(new FileReader(
 				actual));
 
-		// the expected result is in a file
-		Reader expected = new FileReader("../src/test/resource/sample.expected");
+		/* The expected result is in a file*/
+		Reader expected = new FileReader("../src/test/resource/scanner/"+expectedFile);
 		BufferedReader expectedContent = new BufferedReader(expected);
 
 		String expectedLine, actualLine;
+
+		boolean result = true;
 		do {
 			expectedLine = expectedContent.readLine();
 			actualLine = actualContent.readLine();
 
-			assertEquals(expectedLine, actualLine);
-		} while (expectedLine != null);
-		
+			if (expectedLine != null) {
+				result = expectedLine.equals(actualLine);
+			}
+			
+		} while ((expectedLine != null) && result);
+
+		return result;
 	}
 
 }

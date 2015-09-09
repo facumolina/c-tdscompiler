@@ -1,0 +1,24 @@
+/* Int literals */
+1
+01
+12398891
+
+/* Non Int literals */
+nasdasd1
+/*111*/
+
+/* Float literals */
+0.121
+111.2133
+
+/* Non Float literals*/
+.12313
+123123...
+
+/* Boolean literals */
+true
+false
+
+/* Non Boolean literals*/
+atrue
+false123

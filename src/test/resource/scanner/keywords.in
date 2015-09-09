@@ -1,0 +1,14 @@
+/* Keywords */
+class A
+if (b)
+int x;
+float f;
+extern
+return a;
+
+/* Incorrect keywords */
+classA
+whiletrue
+if(b)
+intx;
+breakcontinue;
