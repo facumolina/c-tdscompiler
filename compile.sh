@@ -11,6 +11,7 @@ java -jar lib/java-cup-11a.jar -parser CTdsParser -destdir src/main/java/ src/ma
 echo "---------------------------------- Compiling java files ---------------------------------------"
 export CLASSPATH=""
 for file in `ls lib/`; do export CLASSPATH=$CLASSPATH:lib/$file; done
+mkdir -p classes
 javac -cp $CLASSPATH src/main/java/*.java src/test/java/*.java -d classes/
 
 echo "Successful compilation"
