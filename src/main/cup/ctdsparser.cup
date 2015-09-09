@@ -2,13 +2,11 @@ import java_cup.runtime.*;
 
 parser code {:
 
-	public static Scanner s;
 	public static int errors = 0;
 
     public void report_error(String message, Object info) {
-       	/*StringBuffer m = new StringBuffer("Error");
-		//System.out.println("Message: "+message);
-		//System.out.println("Info: "+info.toString());
+       	errors++;
+       	StringBuffer m = new StringBuffer("Error");
 		if(info instanceof java_cup.runtime.Symbol) {
 			java_cup.runtime.Symbol s=((java_cup.runtime.Symbol)info);
 			
@@ -18,31 +16,16 @@ parser code {:
 				if (s.right >= 0)
 					m.append(", and column "+(s.right+1));
 			}
+			m.append(" near of value "+ s.value);
 		}
 		m.append(" : "+message);
-		System.err.println(m);*/
-		if (info instanceof String){
-			errors++; 
-      		System.err.println("  "+ errors + "==> " + info + " "+ message + 
-					"\n       Parsing resumed from 2nd token before \n");
-    	} else {
-    		StringBuffer m = new StringBuffer("Error ");
-    		if (info instanceof java_cup.runtime.Symbol) 
-     	   	m.append( "("+info.toString()+")" );     
-    		m.append(" : "+message);   
-    		System.err.println(m);
-    	}
+		System.err.println(m);
+		
     }
 
     public void syntax_error(Symbol cur_token){
 		System.err.println("Syntax error at "+cur_token.toString());
     }
-
-    /* Reports a non-recoverable error occurs*/
-    /*public void report_fatal_error(String message, Object info) {
-       	report_error(message, info);
-		System.exit(1);
-    }*/
  
 :};
  
@@ -90,7 +73,7 @@ terminal uNOT;
 terminal DOT;
 terminal COMMA;
 terminal SEMI_COLON;
-
+terminal ERROR;
 terminal Integer INT_LITERAL;
 terminal Float FLOAT_LITERAL;
 terminal String ID;
@@ -108,7 +91,6 @@ non terminal Object method_decl_list;
 non terminal Object method_body;
 non terminal Object method_call;
 non terminal Object arguments_list;
-non terminal Object arguments_list_comma;
 non terminal Object block;
 non terminal Object decl;
 non terminal Object decl_list;
@@ -119,15 +101,7 @@ non terminal Object extended_location;
 
 non terminal Object expr;
 non terminal Object expr_list;
-non terminal Object expr_list_COMMA;
-non terminal Object return_expr;
 
-non terminal Object arithmetical_operator;
-non terminal Object relational_operator;
-non terminal Object equality_operator;
-non terminal Object conditional_operator;
-non terminal Object binary_operator;
-non terminal Object assign_operator;
 non terminal Object literal;
 non terminal Object bool_literal;
 
@@ -148,7 +122,8 @@ program ::= class_decl
 	;
 
 /* Class */
-class_decl ::= CLASS ID L_BRACE field_decl_list method_decl_list R_BRACE 
+class_decl ::= CLASS ID L_BRACE field_decl_list method_decl_list R_BRACE
+	|	CLASS ID L_BRACE field_decl_list R_BRACE 
 	;
 
 /* Fields declarations */
@@ -156,87 +131,101 @@ field_decl_list ::= field_decl_list field_decl
 	|	/*empty field_decl_list*/
 	;
 
-field_decl ::= type decl decl_list SEMI_COLON
+field_decl ::= type decl_list SEMI_COLON
+	;
+
+decl_list ::= decl
+	| decl COMMA decl_list
 	;
 
 decl ::= ID
 	| ID L_BRACKET INT_LITERAL R_BRACKET
 	;
 
-decl_list ::= decl_list COMMA decl
-	| /*empty decl_list */
-	;
-
 /* Methods declarations */
 
 method_decl_list ::= method_decl method_decl_list 
-	|  /*empty method_decl_list*/
+	|  method_decl
 	;
 
-method_decl ::= type ID L_PAREN arguments_list R_PAREN method_body
+method_decl ::= type ID L_PAREN R_PAREN method_body
+	| type ID L_PAREN arguments_list R_PAREN method_body
+	| VOID ID L_PAREN R_PAREN method_body
 	| VOID ID L_PAREN arguments_list R_PAREN method_body
 	;
 
-arguments_list ::= type ID arguments_list_comma 
-	| 	/*empty arguments list */
+arguments_list ::= type ID  
+	| 	type ID COMMA arguments_list
 	;
-
-arguments_list_comma ::= arguments_list_comma COMMA type ID
-	|	/*empty arguments list */
-	;
-
+	
 method_body ::= block
 	|	EXTERN SEMI_COLON
 	;
 
 block ::= L_BRACE field_decl_list statement_list R_BRACE
+	| L_BRACE field_decl_list R_BRACE
 	;
 
-// Statements
-statement_list ::= statement statement_list
-	|	/* empty statement list*/
+/* Statements */
+statement_list ::=  statement_list statement
+	|	statement
 	;
 
-statement ::= location assign_operator expr SEMI_COLON
+statement ::= location EQ expr SEMI_COLON
+	| 	location PLUS_EQ expr SEMI_COLON
+	|	location MINUS_EQ expr SEMI_COLON
 	|	method_call SEMI_COLON
 	|	IF L_PAREN expr R_PAREN block
 	|	IF L_PAREN expr R_PAREN block ELSE block	
 	|	FOR ID EQ expr COMMA expr block
 	|	WHILE expr block
-	|	RETURN return_expr SEMI_COLON
+	|	RETURN expr SEMI_COLON
+	|	RETURN SEMI_COLON
 	|	BREAK SEMI_COLON
 	|	CONTINUE SEMI_COLON
 	|	SEMI_COLON
 	|	block
 	;
 
-location ::= ID extended_location
+location ::= ID 
+	|	ID extended_location
+	|	ID L_BRACKET expr R_BRACKET
 	|	ID extended_location L_BRACKET expr R_BRACKET
 	;
 
-extended_location ::= extended_location DOT ID
-	|	/* emtpy extended_location */
+extended_location ::= DOT ID extended_location
+	|	DOT ID
 	;
 
 expr ::= location
 	|	method_call
 	|	literal
-	|	expr binary_operator expr
+	|	expr PLUS expr
+	|  	expr MINUS expr
+	| 	expr TIMES expr
+	| 	expr DIVIDE expr
+	|	expr MOD expr
+	|	expr LESS expr
+	| 	expr LESS_EQ expr
+	|	expr GTR expr
+	| 	expr GTR_EQ expr
+	| 	expr EQ_EQ expr
+	|	expr NOT_EQ expr
+	|	expr AND expr
+	| 	expr OR expr
 	|	MINUS expr %prec uNOT
 	|	NOT expr %prec uNOT
 	|	L_PAREN expr R_PAREN
 	;
 
-method_call ::= ID extended_location L_PAREN expr_list R_PAREN
+method_call ::= ID extended_location L_PAREN R_PAREN
+	|	ID extended_location L_PAREN expr_list R_PAREN
 	;
 
-expr_list ::= expr expr_list_COMMA
-	|	/* empty expr_list */
+expr_list ::= expr  
+	| expr COMMA expr_list 
 	;
 
-expr_list_COMMA ::= expr_list_COMMA COMMA expr
-	|	/* empty expr_list_COMMA */
-	;
 
 literal ::= INT_LITERAL
 	|	FLOAT_LITERAL
@@ -246,39 +235,6 @@ literal ::= INT_LITERAL
 bool_literal ::= TRUE 
 	| 	FALSE
 	;
-
-/* Operators */
-assign_operator ::= EQ
-	|	PLUS_EQ
-	|	MINUS_EQ
-	;
-
-binary_operator ::= arithmetical_operator
-	|	relational_operator
-	|	equality_operator
-	|	conditional_operator
-	;
-
-arithmetical_operator ::= PLUS
-	|	MINUS
-	|	TIMES
-	| 	DIVIDE
-	| 	MOD
-	;
-
-relational_operator ::= LESS
- 	| GTR
- 	| LESS_EQ
- 	| GTR_EQ
- 	;
-
-equality_operator ::= EQ_EQ
- 	| NOT_EQ
- 	;
-
-conditional_operator ::= AND
- 	| OR
- 	;
 
 type ::= INT
 	| FLOAT
