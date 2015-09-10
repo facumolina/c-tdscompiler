@@ -22,6 +22,7 @@ Installation
    	CTdsParser.java (Representing the parser defined in the file src/main/cup/ctdsparser.cup)
    	CTdsSymbol.java (Representing the symbols of the language defined in the same file as the parser)
   ```
+
 Running
 =======
  - Run the defined tests ``` ./test.sh ```
