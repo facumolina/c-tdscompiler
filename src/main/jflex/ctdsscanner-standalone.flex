@@ -1,5 +1,7 @@
-/* This file defines a lexical analyzer for the C-TDS programming language and 
- it contains the standalone directive for testing purposes */
+/* 
+ * This file defines a lexical analyzer for the C-Tds programming language and 
+ * it contains the standalone directive for testing purposes 
+ */
 %%
 
 %public

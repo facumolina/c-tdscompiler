@@ -1,9 +1,12 @@
-/* This file defines a lexical analyzer for the C-TDS programming language. */
+/* 
+ * This file defines a lexical analyzer for the C-Tds programming language. 
+ */
 import java_cup.runtime.*;
 %%
 
 %public
 %class CTdsScanner
+%cupsym CTdsSymbol
 %cup
 %unicode
 %line
@@ -50,67 +53,66 @@ import java_cup.runtime.*;
 %%
 
 /* Keywords */
-"class"                                { return symbol(sym.CLASS,yytext()); }
-"int"                                  { return symbol(sym.INT,yytext()); }
-"float"                                { return symbol(sym.FLOAT,yytext()); }
-"boolean"                              { return symbol(sym.BOOLEAN,yytext()); }
-"if"                                   { return symbol(sym.IF,yytext()); }
-"else"                                 { return symbol(sym.ELSE,yytext()); }
-"for"                                  { return symbol(sym.FOR,yytext()); }
-"while"                                { return symbol(sym.WHILE,yytext()); }
-"break"                                { return symbol(sym.BREAK,yytext()); }
-"continue"                             { return symbol(sym.CONTINUE,yytext()); }
-"extern"                               { return symbol(sym.EXTERN,yytext()); }
-"return"                               { return symbol(sym.RETURN,yytext()); }
-"void"                                 { return symbol(sym.VOID,yytext()); }
+"class"                                { return symbol(CTdsSymbol.CLASS,yytext()); }
+"int"                                  { return symbol(CTdsSymbol.INT,yytext()); }
+"float"                                { return symbol(CTdsSymbol.FLOAT,yytext()); }
+"boolean"                              { return symbol(CTdsSymbol.BOOLEAN,yytext()); }
+"if"                                   { return symbol(CTdsSymbol.IF,yytext()); }
+"else"                                 { return symbol(CTdsSymbol.ELSE,yytext()); }
+"for"                                  { return symbol(CTdsSymbol.FOR,yytext()); }
+"while"                                { return symbol(CTdsSymbol.WHILE,yytext()); }
+"break"                                { return symbol(CTdsSymbol.BREAK,yytext()); }
+"continue"                             { return symbol(CTdsSymbol.CONTINUE,yytext()); }
+"extern"                               { return symbol(CTdsSymbol.EXTERN,yytext()); }
+"return"                               { return symbol(CTdsSymbol.RETURN,yytext()); }
+"void"                                 { return symbol(CTdsSymbol.VOID,yytext()); }
 
 /* Literals */
-{int_literal}                          { return symbol(sym.INT_LITERAL, new Integer(yytext()));}
-{float_literal}                        { return symbol(sym.FLOAT_LITERAL, new Float(yytext()));}
-"true"                                 { return symbol(sym.TRUE,true); }
-"false"                                { return symbol(sym.FALSE,false);}
+{int_literal}                          { return symbol(CTdsSymbol.INT_LITERAL, new Integer(yytext()));}
+{float_literal}                        { return symbol(CTdsSymbol.FLOAT_LITERAL, new Float(yytext()));}
+"true"                                 { return symbol(CTdsSymbol.TRUE,true); }
+"false"                                { return symbol(CTdsSymbol.FALSE,false);}
 
 /* Operators */
-"+"                                    { return symbol(sym.PLUS,yytext()); }
-"-"                                    { return symbol(sym.MINUS,yytext()); }
-"*"                                    { return symbol(sym.TIMES,yytext()); }
-"/"                                    { return symbol(sym.DIVIDE,yytext()); }
-"%"                                    { return symbol(sym.MOD,yytext()); }
+"+"                                    { return symbol(CTdsSymbol.PLUS,yytext()); }
+"-"                                    { return symbol(CTdsSymbol.MINUS,yytext()); }
+"*"                                    { return symbol(CTdsSymbol.TIMES,yytext()); }
+"/"                                    { return symbol(CTdsSymbol.DIVIDE,yytext()); }
+"%"                                    { return symbol(CTdsSymbol.MOD,yytext()); }
 
-"<"                                    { return symbol(sym.LESS,yytext()); }
-">"                                    { return symbol(sym.GTR,yytext()); }
-"="                                    { return symbol(sym.EQ,yytext()); }
+"<"                                    { return symbol(CTdsSymbol.LESS,yytext()); }
+">"                                    { return symbol(CTdsSymbol.GTR,yytext()); }
+"="                                    { return symbol(CTdsSymbol.EQ,yytext()); }
 
-"+="                                   { return symbol(sym.PLUS_EQ,yytext());}
-"-="                                   { return symbol(sym.MINUS_EQ,yytext());}
-"<="                                   { return symbol(sym.LESS_EQ,yytext());}
-">="                                   { return symbol(sym.GTR_EQ,yytext());}
-"=="                                   { return symbol(sym.EQ_EQ,yytext()); }
-"!"                                    { return symbol(sym.NOT,yytext()); }
-"!="                                   { return symbol(sym.NOT_EQ,yytext());}
-"&&"                                   { return symbol(sym.AND,yytext()); }
-"||"                                   { return symbol(sym.OR,yytext()); }
+"+="                                   { return symbol(CTdsSymbol.PLUS_EQ,yytext());}
+"-="                                   { return symbol(CTdsSymbol.MINUS_EQ,yytext());}
+"<="                                   { return symbol(CTdsSymbol.LESS_EQ,yytext());}
+">="                                   { return symbol(CTdsSymbol.GTR_EQ,yytext());}
+"=="                                   { return symbol(CTdsSymbol.EQ_EQ,yytext()); }
+"!"                                    { return symbol(CTdsSymbol.NOT,yytext()); }
+"!="                                   { return symbol(CTdsSymbol.NOT_EQ,yytext());}
+"&&"                                   { return symbol(CTdsSymbol.AND,yytext()); }
+"||"                                   { return symbol(CTdsSymbol.OR,yytext()); }
 
 
 /* Delimiters */
-"("                                    { return symbol(sym.L_PAREN,yytext()); }
-")"                                    { return symbol(sym.R_PAREN,yytext()); }
-"{"                                    { return symbol(sym.L_BRACE,yytext()); }
-"}"                                    { return symbol(sym.R_BRACE,yytext()); } 
-"["                                    { return symbol(sym.L_BRACKET,yytext()); }
-"]"                                    { return symbol(sym.R_BRACKET,yytext()); }
+"("                                    { return symbol(CTdsSymbol.L_PAREN,yytext()); }
+")"                                    { return symbol(CTdsSymbol.R_PAREN,yytext()); }
+"{"                                    { return symbol(CTdsSymbol.L_BRACE,yytext()); }
+"}"                                    { return symbol(CTdsSymbol.R_BRACE,yytext()); } 
+"["                                    { return symbol(CTdsSymbol.L_BRACKET,yytext()); }
+"]"                                    { return symbol(CTdsSymbol.R_BRACKET,yytext()); }
 
-"."                                    { return symbol(sym.DOT,yytext()); }
-","                                    { return symbol(sym.COMMA,yytext()); }
-";"                                    { return symbol(sym.SEMI_COLON,yytext()); }
+"."                                    { return symbol(CTdsSymbol.DOT,yytext()); }
+","                                    { return symbol(CTdsSymbol.COMMA,yytext()); }
+";"                                    { return symbol(CTdsSymbol.SEMI_COLON,yytext()); }
 
 /* Identifiers */
-{id}                                   { return symbol(sym.ID,yytext()); }
+{id}                                   { return symbol(CTdsSymbol.ID,yytext()); }
 
 /* Comments */
 {comment}                              { /* Ignore comment */ }
 {white_space}                          { /* Ignore whitespace */ }
 
 /* Error */
-//[^]                                    { throw new Error("Illegal character <"+yytext()+">"); }
-[^]                                    { return symbol(sym.ERROR,yytext()); }
+[^]                                    { return symbol(CTdsSymbol.ERROR,yytext()); }
