@@ -16,7 +16,9 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
-/* This class provides a set of tests for the CTds Scanner generated with JFlex */
+/* 
+ * This class provides a set of tests for the CTds Scanner 
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CTdsScannerTest {
 

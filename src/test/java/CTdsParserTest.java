@@ -17,7 +17,9 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
-/* This class provides a set of tests for the CTds Parser */
+/* 
+ * This class provides a set of tests for the CTdsParser 
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CTdsParserTest {
 
@@ -52,6 +54,11 @@ public class CTdsParserTest {
 		assertEquals(genericTest("ClassDeclarationError.in"),false);
 	}
 
+	@Test
+	public void ClassDeclarationWithErrorOrderTest() throws IOException {
+		assertEquals(genericTest("ClassDeclarationErrorOrder.in"),false);
+	}
+
 	/* 
 	 * Test the grammar rules that involves fields declarations. 
 	 */
@@ -79,6 +86,11 @@ public class CTdsParserTest {
 		assertEquals(genericTest("MethodDeclarationError.in"),false);
 	}
 
+	@Test 
+	public void MethodDeclarationWithErrorOrderTest() throws IOException {
+		assertEquals(genericTest("MethodDeclarationErrorOrder.in"),false);
+	}
+
 	/* 
 	 * Test the grammar rules that involves declarations of methods with field
 	 * declarations in the body.
@@ -94,8 +106,8 @@ public class CTdsParserTest {
 	}
 
 	/* 
-	 * Test the grammar rules that involves declarations of methods with statements
-	 * declarations in the body 
+	 * Test the grammar rules that involves declarations of methods with different 
+	 * kinds of statements declarations in the body 
 	 */
 	@Test 
 	public void StatementAssignmentOkTest() throws IOException {
@@ -152,24 +164,21 @@ public class CTdsParserTest {
 	* the string of text of the input file belongs to the language or false
 	* in otherwise.
 	*/
-	private boolean genericTest(String inputFile) throws IOException {
+	public static boolean genericTest(String inputFile) throws IOException {
 		String[] argv = new String[1];
 		argv[0] = "../src/test/resource/parser/"+inputFile;
 
 		boolean do_debug_parse = false;
     
 		CTdsParser parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
-		parser.errors = 0;
 		Symbol parseTree = null;
 		try {
 			if (do_debug_parse)
 				 parseTree = parser.debug_parse();
 			else 
 				parseTree = parser.parse();
-			System.out.println("Errors: " + parser.errors);
 			return true;
 		} catch (Exception e) {
-			System.out.println("Errors: " + parser.errors);
 			return false;
 		}
 	}
