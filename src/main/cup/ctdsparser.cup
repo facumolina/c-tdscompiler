@@ -1,35 +1,61 @@
 import java_cup.runtime.*;
-
+import java.io.*;
+/*
+ * This file defines the grammar of the C-Tds programming language and it is used
+ * for generate a parser.
+ */
 parser code {:
 
-	public static int errors = 0;
-
+	/*
+	 * Redefine the report_error method
+	 */
     public void report_error(String message, Object info) {
-       	errors++;
        	StringBuffer m = new StringBuffer("Error");
 		if(info instanceof java_cup.runtime.Symbol) {
-			java_cup.runtime.Symbol s=((java_cup.runtime.Symbol)info);
-			
+			java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol)info);
 			if(s.left >= 0) {
 				m.append(" in line "+(s.left+1));
-				
 				if (s.right >= 0)
 					m.append(", and column "+(s.right+1));
 			}
-			m.append(" near of value "+ s.value);
+			m.append(" near of value '"+ s.value +"'");
 		}
 		m.append(" : "+message);
 		System.err.println(m);
-		
     }
 
+    /*
+	 * Redefine the syntax_error method
+	 */
     public void syntax_error(Symbol cur_token){
 		System.err.println("Syntax error at "+cur_token.toString());
     }
  
+ 	/* 
+ 	 * Main method for run the parser with an input file 
+ 	 */
+ 	public static void main(String[] argv) {
+ 		
+ 		boolean do_debug_parse = false;
+    	
+    	try {
+			CTdsParser parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
+			Symbol parseTree = null;
+		
+			if (do_debug_parse)
+				 parseTree = parser.debug_parse();
+			else 
+				parseTree = parser.parse();
+			System.out.println("Correct input");
+		} catch (Exception e) {
+			System.out.println("Incorrect input");
+		} 	
+ 	}
 :};
  
-/* Terminals */
+/* 
+ * Terminals symbols of the grammar.
+ */
 terminal CLASS;
 terminal INT;
 terminal FLOAT;
@@ -76,11 +102,13 @@ terminal SEMI_COLON;
 terminal ERROR;
 terminal Integer INT_LITERAL;
 terminal Float FLOAT_LITERAL;
-terminal String ID;
 terminal Boolean TRUE;
 terminal Boolean FALSE;
+terminal ID;
 
-/* Nonterminals */
+/* 
+ * Non terminals symbols of the grammar.
+ */
 non terminal Object program;
 non terminal Object type;
 non terminal Object class_decl;
@@ -105,7 +133,9 @@ non terminal Object expr_list;
 non terminal Object literal;
 non terminal Object bool_literal;
 
-
+/*
+ * Precedence rules
+ */
 precedence left LESS,GTR,EQ,LESS_EQ,GTR_EQ,EQ_EQ,NOT_EQ;
 precedence left AND,OR;
 
@@ -114,7 +144,9 @@ precedence left  TIMES, DIVIDE, MOD;
 
 precedence left uNOT;
 
-/* ­­­­­­­­­­­­­­ Grammar rules */
+/* ­­­­­­­­­­­­­­ 
+ * Grammar rules 
+ */
 
 /* Program */
 program ::= class_decl 
