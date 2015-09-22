@@ -1,5 +1,7 @@
 import java_cup.runtime.*;
 import java.io.*;
+import java.util.*;
+
 /*
  * This file defines the grammar of the C-Tds programming language and it is used
  * for generate a parser.
@@ -100,38 +102,38 @@ terminal DOT;
 terminal COMMA;
 terminal SEMI_COLON;
 terminal ERROR;
-terminal Integer INT_LITERAL;
-terminal Float FLOAT_LITERAL;
-terminal Boolean TRUE;
-terminal Boolean FALSE;
-terminal ID;
+terminal IntLiteral INT_LITERAL;
+terminal FloatLiteral FLOAT_LITERAL;
+terminal BooleanLiteral TRUE;
+terminal BooleanLiteral FALSE;
+terminal String ID;
 
 /* 
  * Non terminals symbols of the grammar.
  */
 non terminal Object program;
-non terminal Object type;
-non terminal Object class_decl;
-non terminal Object field_decl;
-non terminal Object field_decl_list;
-non terminal Object method_decl;
-non terminal Object method_decl_list;
-non terminal Object method_body;
-non terminal Object method_call;
-non terminal Object arguments_list;
-non terminal Object block;
-non terminal Object decl;
-non terminal Object decl_list;
-non terminal Object statement;
-non terminal Object statement_list;
-non terminal Object location;
-non terminal Object extended_location;
+non terminal Type type;
+non terminal ClassDeclaration class_decl;
+non terminal FieldDeclaration field_decl;
+non terminal List<FieldDeclaration> field_decl_list;
+non terminal MethodDeclaration method_decl;
+non terminal List<MethodDeclaration> method_decl_list;
+non terminal Block method_body;
+non terminal MethodCall method_call;
+non terminal List<Argument> arguments_list;
+non terminal Block block;
+non terminal String decl;
+non terminal List<String> decl_list;
+non terminal Statement statement;
+non terminal List<Statement> statement_list;
+non terminal Location location;
+non terminal List<String> extended_location;
 
-non terminal Object expr;
-non terminal Object expr_list;
+non terminal Expression expr;
+non terminal List<Expression> expr_list;
 
-non terminal Object literal;
-non terminal Object bool_literal;
+non terminal Literal literal;
+non terminal BooleanLiteral bool_literal;
 
 /*
  * Precedence rules
@@ -139,8 +141,8 @@ non terminal Object bool_literal;
 precedence left LESS,GTR,EQ,LESS_EQ,GTR_EQ,EQ_EQ,NOT_EQ;
 precedence left AND,OR;
 
-precedence left  PLUS, MINUS;
-precedence left  TIMES, DIVIDE, MOD;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE, MOD;
 
 precedence left uNOT;
 
@@ -154,61 +156,61 @@ program ::= class_decl
 	;
 
 /* Class */
-class_decl ::= CLASS ID L_BRACE field_decl_list method_decl_list R_BRACE
-	|	CLASS ID L_BRACE field_decl_list R_BRACE 
+class_decl ::= CLASS ID L_BRACE field_decl_list:fdl method_decl_list:mdl R_BRACE 	{: RESULT = new ClassDeclaration(fdl,mdl);:}
+	|	CLASS ID L_BRACE field_decl_list:fdl R_BRACE 								{: RESULT = new ClassDeclaration(fdl,new LinkedList<MethodDeclaration>());:}
 	;
 
 /* Fields declarations */
-field_decl_list ::= field_decl_list field_decl 
-	|	/*empty field_decl_list*/
+field_decl_list ::= field_decl_list:l field_decl:f  {: l.add(0,f); RESULT = l; :}
+	|	/*empty field_decl_list*/ 					{: RESULT = new LinkedList<FieldDeclaration>();:}
 	;
 
-field_decl ::= type decl_list SEMI_COLON
+field_decl ::= type:t decl_list:l SEMI_COLON  		{: RESULT = new FieldDeclaration(t,l); :}		
 	;
 
-decl_list ::= decl
-	| decl COMMA decl_list
+decl_list ::= decl:d 								{: RESULT = new LinkedList<String>(Arrays.asList(d)); :}
+	| decl:d COMMA decl_list:l 						{: l.add(0,d); RESULT = l; :}
 	;
 
-decl ::= ID
+decl ::= ID:id 										{: RESULT = id; :}
 	| ID L_BRACKET INT_LITERAL R_BRACKET
 	;
 
 /* Methods declarations */
 
-method_decl_list ::= method_decl method_decl_list 
-	|  method_decl
+method_decl_list ::= method_decl:m method_decl_list:l 	{: l.add(0,m); RESULT = l; :} 
+	|  method_decl:m 									{: RESULT = new LinkedList<MethodDeclaration>(Arrays.asList(m));:}
 	;
 
-method_decl ::= type ID L_PAREN R_PAREN method_body
-	| type ID L_PAREN arguments_list R_PAREN method_body
-	| VOID ID L_PAREN R_PAREN method_body
-	| VOID ID L_PAREN arguments_list R_PAREN method_body
+method_decl ::= type:t ID:id L_PAREN R_PAREN method_body:b      	{: RESULT = new MethodDeclaration(t,id,new LinkedList<Argument>(),b); :}
+	| type:t ID:id L_PAREN arguments_list:l R_PAREN method_body:b   {: RESULT = new MethodDeclaration(t,id,l,b); :}
+	| VOID ID:id L_PAREN R_PAREN method_body:b 						{: RESULT = new MethodDeclaration(Type.VOID,id,new LinkedList<Argument>(),b); :}
+	| VOID ID:id L_PAREN arguments_list:l R_PAREN method_body:b 	{: RESULT = new MethodDeclaration(Type.VOID,id,l,b); :}
 	;
 
-arguments_list ::= type ID  
-	| 	type ID COMMA arguments_list
+arguments_list ::= type:t ID:id      		{: RESULT = new LinkedList<Argument>(Arrays.asList(new Argument(t,id)));:}
+	| 	type:t ID:id COMMA arguments_list:l {: l.add(0,new Argument(t,id)); RESULT = l; :}
 	;
 	
-method_body ::= block
-	|	EXTERN SEMI_COLON
+method_body ::= block:b 					{: RESULT = b; :}
+	|	EXTERN SEMI_COLON					{: RESULT = null; :}
 	;
 
-block ::= L_BRACE field_decl_list statement_list R_BRACE
-	| L_BRACE field_decl_list R_BRACE
+block ::= L_BRACE field_decl_list:fl statement_list:sl R_BRACE  {: RESULT = new Block(fl,sl); :}
+	| L_BRACE field_decl_list:fl R_BRACE     					{: RESULT = new Block(fl,new LinkedList<Statement>()); :}
 	;
 
 /* Statements */
-statement_list ::=  statement_list statement
-	|	statement
+statement_list ::=  statement_list:l statement:s  	{: l.add(0,s); RESULT = l; :}
+	|	statement:s 								{: RESULT = new LinkedList<Statement>(Arrays.asList(s));:}
 	;
 
-statement ::= location EQ expr SEMI_COLON
-	| 	location PLUS_EQ expr SEMI_COLON
-	|	location MINUS_EQ expr SEMI_COLON
-	|	method_call SEMI_COLON
-	|	IF L_PAREN expr R_PAREN block
-	|	IF L_PAREN expr R_PAREN block ELSE block	
+statement ::= location:l EQ expr:e SEMI_COLON 			{: RESULT = new AssignStatement(l,AssignOpType.ASSIGN,e);:}
+	| 	location:l PLUS_EQ expr:e SEMI_COLON			{: RESULT = new AssignStatement(l,AssignOpType.INCREMENT,e);:}			
+	|	location:l MINUS_EQ expr:e SEMI_COLON			{: RESULT = new AssignStatement(l,AssignOpType.DECREMENT,e);:}
+	|	method_call:m SEMI_COLON 						
+	|	IF L_PAREN expr:cond R_PAREN block:b 				{: RESULT = new IfStatement(cond,b); :}
+	|	IF L_PAREN expr:cond R_PAREN block:ib ELSE block:eb	{: RESULT = new IfStatement(cond,ib,eb);:}
 	|	FOR ID EQ expr COMMA expr block
 	|	WHILE expr block
 	|	RETURN expr SEMI_COLON
@@ -219,56 +221,59 @@ statement ::= location EQ expr SEMI_COLON
 	|	block
 	;
 
-location ::= ID 
-	|	ID extended_location
-	|	ID L_BRACKET expr R_BRACKET
-	|	ID extended_location L_BRACKET expr R_BRACKET
+location ::= ID:id 												{: RESULT = new VarLocation(id); :}
+	|	ID:id extended_location:l								{: RESULT = new VarLocation(id,l); :}
+	|	ID:id L_BRACKET expr:e R_BRACKET						{: RESULT = new VarArrayLocation(id,e); :}
+	|	ID:id extended_location:l L_BRACKET expr:e R_BRACKET	{: RESULT = new VarArrayLocation(id,e,l); :}
 	;
 
-extended_location ::= DOT ID extended_location
-	|	DOT ID
+extended_location ::= DOT ID:id extended_location:el 	{: el.add(0,id); RESULT = el; :}
+	|	DOT ID:id 										{: RESULT = new LinkedList<String>(Arrays.asList(id)); :}
 	;
 
-expr ::= location
-	|	method_call
-	|	literal
-	|	expr PLUS expr
-	|  	expr MINUS expr
-	| 	expr TIMES expr
-	| 	expr DIVIDE expr
-	|	expr MOD expr
-	|	expr LESS expr
-	| 	expr LESS_EQ expr
-	|	expr GTR expr
-	| 	expr GTR_EQ expr
-	| 	expr EQ_EQ expr
-	|	expr NOT_EQ expr
-	|	expr AND expr
-	| 	expr OR expr
-	|	MINUS expr %prec uNOT
-	|	NOT expr %prec uNOT
-	|	L_PAREN expr R_PAREN
+expr ::= location:loc 							{: RESULT = loc; :}
+	|	method_call:m 							{: RESULT = m; :}
+	|	literal:lit 							{: RESULT = lit; :}
+	|	expr:e1 PLUS expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.PLUS,e2); :}
+	|  	expr:e1 MINUS expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MINUS,e2); :}
+	| 	expr:e1 TIMES expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MULTIPLY,e2); :}
+	| 	expr:e1 DIVIDE expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.DIVIDE,e2); :}
+	|	expr:e1 MOD expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.MOD,e2); :}
+	|	expr:e1 LESS expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.LE,e2); :}
+	| 	expr:e1 LESS_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.LEQ,e2); :}
+	|	expr:e1 GTR expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.GE,e2); :}
+	| 	expr:e1 GTR_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.GEQ,e2); :}
+	| 	expr:e1 EQ_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.CEQ,e2); :}
+	|	expr:e1 NOT_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.NEQ,e2); :}
+	|	expr:e1 AND expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.AND,e2); :}
+	| 	expr:e1 OR expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.OR,e2); :}
+	|	MINUS expr:e 							{: RESULT = new UnaryOpExpr(UnaryOpType.MINUS,e); :}
+	%prec uNOT
+	|	NOT expr:e 								{: RESULT = new UnaryOpExpr(UnaryOpType.NOT,e);:}
+	%prec uNOT 
+	|	L_PAREN expr:e R_PAREN					{: RESULT = new NullaryExpr(e); :}
 	;
 
-method_call ::= ID extended_location L_PAREN R_PAREN
-	|	ID extended_location L_PAREN expr_list R_PAREN
+method_call ::= ID:id L_PAREN R_PAREN							{: RESULT = new MethodCall(id); :} 
+	|	ID:id extended_location:l L_PAREN R_PAREN				{: RESULT = new MethodCall(id,l); :}
+	| 	ID:id L_PAREN expr_list:el R_PAREN						{: RESULT = new MethodCall(id,new LinkedList<String>(),el); :}
+	|	ID:id extended_location:l L_PAREN expr_list:el R_PAREN	{: RESULT = new MethodCall(id,l,el); :}
 	;
 
-expr_list ::= expr  
-	| expr COMMA expr_list 
+expr_list ::= expr:e COMMA expr_list:l 				{: l.add(e) ; RESULT = l; :} 
+	|	expr:e  									{: RESULT = new LinkedList<Expression>(Arrays.asList(e)); :}
 	;
 
-
-literal ::= INT_LITERAL
-	|	FLOAT_LITERAL
-	|	bool_literal
+literal ::= INT_LITERAL:i							{: RESULT = i; :}
+	|	FLOAT_LITERAL:f 							{: RESULT = f; :}		
+	|	bool_literal:b								{: RESULT = b; :}
 	;
 
-bool_literal ::= TRUE 
-	| 	FALSE
+bool_literal ::= TRUE:t 							{: RESULT = t; :}
+	| 	FALSE:f 									{: RESULT = f; :}
 	;
 
-type ::= INT
-	| FLOAT
-	| BOOLEAN
+type ::= INT 										{: RESULT = Type.INT; :}
+	| FLOAT 										{: RESULT = Type.FLOAT; :}
+	| BOOLEAN 										{: RESULT = Type.BOOLEAN; :}
 	;
