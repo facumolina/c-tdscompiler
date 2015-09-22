@@ -68,20 +68,20 @@ import java_cup.runtime.*;
 "void"                                 { return symbol(CTdsSymbol.VOID,yytext()); }
 
 /* Literals */
-{int_literal}                          { return symbol(CTdsSymbol.INT_LITERAL, new Integer(yytext()));}
-{float_literal}                        { return symbol(CTdsSymbol.FLOAT_LITERAL, new Float(yytext()));}
-"true"                                 { return symbol(CTdsSymbol.TRUE,true); }
-"false"                                { return symbol(CTdsSymbol.FALSE,false);}
+{int_literal}                          { return symbol(CTdsSymbol.INT_LITERAL, new IntLiteral(yytext()));}
+{float_literal}                        { return symbol(CTdsSymbol.FLOAT_LITERAL, new FloatLiteral(yytext()));}
+"true"                                 { return symbol(CTdsSymbol.TRUE, new BooleanLiteral(true)); }
+"false"                                { return symbol(CTdsSymbol.FALSE, new BooleanLiteral(false));}
 
 /* Operators */
-"+"                                    { return symbol(CTdsSymbol.PLUS,yytext()); }
-"-"                                    { return symbol(CTdsSymbol.MINUS,yytext()); }
-"*"                                    { return symbol(CTdsSymbol.TIMES,yytext()); }
-"/"                                    { return symbol(CTdsSymbol.DIVIDE,yytext()); }
-"%"                                    { return symbol(CTdsSymbol.MOD,yytext()); }
+"+"                                    { return symbol(CTdsSymbol.PLUS,BinOpType.PLUS); }
+"-"                                    { return symbol(CTdsSymbol.MINUS,BinOpType.MINUS); }
+"*"                                    { return symbol(CTdsSymbol.TIMES,BinOpType.MULTIPLY); }
+"/"                                    { return symbol(CTdsSymbol.DIVIDE,BinOpType.DIVIDE); }
+"%"                                    { return symbol(CTdsSymbol.MOD,BinOpType.MOD); }
 
-"<"                                    { return symbol(CTdsSymbol.LESS,yytext()); }
-">"                                    { return symbol(CTdsSymbol.GTR,yytext()); }
+"<"                                    { return symbol(CTdsSymbol.LESS,BinOpType.LE); }
+">"                                    { return symbol(CTdsSymbol.GTR,BinOpType.GE); }
 "="                                    { return symbol(CTdsSymbol.EQ,yytext()); }
 
 "+="                                   { return symbol(CTdsSymbol.PLUS_EQ,yytext());}
