@@ -12,6 +12,6 @@ echo "---------------------------------- Compiling java files ------------------
 export CLASSPATH=""
 for file in `ls lib/`; do export CLASSPATH=$CLASSPATH:lib/$file; done
 mkdir -p classes
-javac -cp $CLASSPATH -Xlint:unchecked src/main/java/*.java src/test/java/*.java src/main/java/ast/*.java -d classes/
+javac -cp $CLASSPATH src/main/java/*.java src/test/java/*.java src/main/java/ast/*.java src/main/java/compiler/*.java src/main/java/visitor/*.java -d classes/
 
 echo "Successful compilation"
