@@ -1,4 +1,9 @@
-
+/**
+ * This class represents the literals:
+ *  - Boolean literal
+ *  - Int literal
+ *  - Float literal
+ */
 public abstract class Literal extends Expression {
 	
 	/*

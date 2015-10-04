@@ -1,5 +1,8 @@
-
+/**
+ *
+ */
 public class IntLiteral extends Literal {
+	
 	private String rawValue;
 	private Integer value;
 	

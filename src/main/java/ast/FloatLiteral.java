@@ -1,4 +1,6 @@
-
+/**
+*
+*/
 public class FloatLiteral extends Literal {
 
 	private String rawValue;

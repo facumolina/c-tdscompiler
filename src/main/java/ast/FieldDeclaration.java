@@ -5,22 +5,52 @@ import java.util.List;
  *   - type id ;
  *   - type id [ intliteral ] ;
  */
-public class FieldDeclaration extends Declaration {
+public class FieldDeclaration extends AST {
 
-	private List<String> listIds;
+	private List<DeclarationIdentifier> identifiersList;	// Identifiers list
+	private Type type; 										// Type
 
-	public FieldDeclaration(Type t,List<String> l) {
+	/**
+	 * Constructor with a given type and list of identifiers.
+	 */
+	public FieldDeclaration(Type t,List<DeclarationIdentifier> l) {
 		type = t;
-		listIds = l;
+		identifiersList = l;
+		for (DeclarationIdentifier d : identifiersList) {
+			d.setType(t);
+		}
+		hasId = true;
 	}
 
-	public List<String> getListIds() {
-		return listIds;
+	/**
+	 * Get the list of identifiers.
+	 */
+	public List<DeclarationIdentifier> getListIds() {
+		return identifiersList;
+	}
+
+	/**
+	 * Get type
+	 */
+	public Type getType() {
+		return type;
+	}
+
+	/**
+	 * Set type
+	 */
+	public void setType(Type t) {
+		type = t;
 	}
 
 	@Override
 	public String toString() {
-		return "";
+		String fieldString = type.toString() + " ";
+		for (DeclarationIdentifier decl : identifiersList) {
+			fieldString += decl.toString() + " ";
+		}
+		fieldString += ";";
+		return fieldString;
 	}
 
 	@Override

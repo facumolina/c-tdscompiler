@@ -51,4 +51,64 @@ public enum BinOpType {
 		return null;
 	}
 
+	/**
+	 * Returns true if the operator is valid for the given type
+	 */
+	public boolean isValidForType(Type t) {
+		switch (t) {
+			case INT: switch (this) {
+				case AND: 
+					return false;
+				case OR: 
+					return false;
+				default: 
+					return true;
+			}
+			case FLOAT: switch (this) {
+				case AND: 
+					return false;
+				case OR: 
+					return false;
+				case MOD:
+					return false;
+				default: 
+					return true;
+			}
+			case BOOLEAN: switch (this) {
+				case CEQ:
+					return true;
+				case NEQ:
+					return true;
+				case AND:
+					return true;
+				case OR:
+					return true;
+				default:
+					return false;
+			}
+			default:
+				return false;
+		}
+	}
+
+	/**
+	 * Returns true if the operator is arithmetical
+	 */
+	public boolean isArithmetical() {
+		switch (this) {
+			case PLUS:
+				return true;
+			case MINUS:
+				return true;
+			case MULTIPLY:
+				return true;
+			case DIVIDE:
+				return true;
+			case MOD:
+				return true;
+			default:
+				return false;
+		}
+	}
+
 }

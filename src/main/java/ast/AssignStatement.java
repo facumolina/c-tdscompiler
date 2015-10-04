@@ -4,43 +4,64 @@
 
 public class AssignStatement extends Statement {
 	
-	private Location location;
-	private Expression expr;
-	private AssignOpType operator;
+	private Location location; 			// Location 
+	private Expression expression; 		// Expression assigned to location
+	private AssignOpType operator; 		// Assignment operator
 
+	/**
+	 * Constructor with a given location, assignment operator and an expression.
+	 */
 	public AssignStatement(Location loc, AssignOpType op, Expression e) {
-		this.location = loc;
-		this.expr = e;
-		this.operator = op;
+		location = loc;
+		expression = e;
+		operator = op;
 	}
 	
-	public void setLocation(Location loc) {
-		this.location = loc;
-	}
-	
+	/**
+	 * Get the location
+	 */
 	public Location getLocation() {
-		return this.location;
+		return location;
+	}
+
+	/**
+	 * Set the location
+	 */
+	public void setLocation(Location loc) {
+		location = loc;
 	}
 	
-	public void setExpression(Expression e) {
-		this.expr = e;
-	}
-	
+	/**
+	 * Get the expression
+	 */
 	public Expression getExpression() {
-		return this.expr;
+		return expression;
+	}
+
+	/**
+	 * Set the expression
+	 */
+	public void setExpression(Expression e) {
+		expression = e;
 	}
 	
+	/**
+	 * Get the operator
+	 */
 	public AssignOpType getOperator() {
 		return operator;
 	}
 
-	public void setOperator(AssignOpType operator) {
-		this.operator = operator;
+	/**
+	 * Set the operator
+	 */
+	public void setOperator(AssignOpType op) {
+		operator = op;
 	}
 	
 	@Override
 	public String toString() {
-		return location + " " + operator + " " + expr;
+		return location.toString() + " " + operator.toString() + " " + expression.toString();
 		
 	}
 

@@ -1,14 +1,16 @@
-
+/**
+ * This class represents a boolean literal: true or false
+ */
 public class BooleanLiteral extends Literal {
+	
 	private String rawValue;
 	private Boolean value;
 	
 	/*
-	 * Constructor for boolean literal that takes a boolean value
-	 * @param: Boolean b
+	 * Constructor with a boolean value
 	 */
 	public BooleanLiteral(Boolean b){
-		rawValue = b.toString(); // Will convert to int value in semantic check
+		rawValue = b.toString(); 
 		value = b;
 	}
 
@@ -17,28 +19,32 @@ public class BooleanLiteral extends Literal {
 		return Type.BOOLEAN;
 	}
 
+	/**
+	 * Get the value as string	
+	 */
 	public String getStringValue() {
 		return rawValue;
 	}
 
+	/**
+	 * Set the string value
+	 */
 	public void setStringValue(String stringValue) {
-		this.rawValue = stringValue;
+		rawValue = stringValue;
 	}
 
+	/**
+	 * Get the value
+	 */
 	public Boolean getValue() {
 		return value;
 	}
 
+	/**
+	 * Set the value
+	 */ 
 	public void setValue(boolean value) {
 		this.value = value;
-	}
-	
-	public String getRawValue() {
-		return rawValue;
-	}
-
-	public void setRawValue(String rawValue) {
-		this.rawValue = rawValue;
 	}
 
 	@Override

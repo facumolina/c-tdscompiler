@@ -28,6 +28,10 @@ public enum Type {
 		return null;
 	}
 	
+	public boolean equals(Type t) {
+		return this.toString().equals(t.toString());
+	}
+
 	public boolean isArray() {
 		if (this == Type.INTARRAY) {
 			return true;

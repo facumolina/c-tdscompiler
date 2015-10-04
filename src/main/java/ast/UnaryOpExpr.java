@@ -1,34 +1,64 @@
-
+/**
+ * This class represents the unary expressions
+ */
 public class UnaryOpExpr extends Expression {
 	
-	private UnaryOpType operator; //operator in the expr = operator expr
-	private Expression operand; //expression
+	private UnaryOpType operator; 	//operator in the expr = operator expr
+	private Expression operand; 	//expression
 	
-	public UnaryOpExpr(UnaryOpType op, Expression e){
+	/**
+	 * Constructor
+	 */
+	public UnaryOpExpr(UnaryOpType op, Expression e,int line,int column){
 		operator = op;
 		operand = e;
+		this.setLineNumber(line);
+		this.setColumnNumber(column);
 	}
 	
-	/*public BinOpExpr(Expression e, TempExpression t) {
-		lOperand = e;
-		operator = t.getOperator();
-		rOperand = t.getRightOperand();
-	}*/
-	
+	/**
+	 * Get operator
+	 */
 	public UnaryOpType getOperator() {
 		return operator;
 	}
 
+	/**
+	 * Set operator
+	 */
 	public void setOperator(UnaryOpType operator) {
 		this.operator = operator;
 	}
 
+	/**
+	 * Get operand
+	 */
 	public Expression getOperand() {
 		return operand;
 	}
 
+	/**
+	 * Set operand
+	 */
 	public void setOperand(Expression operand) {
 		this.operand = operand;
+	}
+
+	/**
+	 * Returns true if the operand type is compatible with the operator
+	 */
+	public boolean compatibleOperator() {
+		return operator.isValidForType(operand.getType());
+	}
+	
+	/**
+	 * Get incomptabile type operator error message
+	 */
+	public String getIncompatibleTypeOperatorError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Type error: incomptabile operator " + operator.toString() 
+				+ " with type " + operand.getType().toString();
+		return lineAndColumn + error ;
 	}
 
 	@Override
@@ -40,4 +70,5 @@ public class UnaryOpExpr extends Expression {
 	public <T> T accept(ASTVisitor<T> v) {
 		return v.visit(this);
 	}
+
 }

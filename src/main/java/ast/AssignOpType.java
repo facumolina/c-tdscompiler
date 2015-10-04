@@ -1,7 +1,6 @@
 /**
  * Enumerate for the type of the assignment operators.
  */
-
 public enum AssignOpType {
 	INCREMENT,
 	DECREMENT,
