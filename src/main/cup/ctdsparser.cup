@@ -33,26 +33,6 @@ parser code {:
 		System.err.println("Syntax error at "+cur_token.toString());
     }
  
- 	/* 
- 	 * Main method for run the parser with an input file 
- 	 */
- 	public static void main(String[] argv) {
- 		
- 		boolean do_debug_parse = false;
-    	
-    	try {
-			CTdsParser parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
-			Symbol parseTree = null;
-		
-			if (do_debug_parse)
-				 parseTree = parser.debug_parse();
-			else 
-				parseTree = parser.parse();
-			System.out.println("Correct input");
-		} catch (Exception e) {
-			System.out.println("Incorrect input");
-		} 	
- 	}
 :};
  
 /* 
@@ -111,7 +91,7 @@ terminal String ID;
 /* 
  * Non terminals symbols of the grammar.
  */
-non terminal Object program;
+non terminal Program program;
 non terminal Type type;
 non terminal ClassDeclaration class_decl;
 non terminal FieldDeclaration field_decl;
@@ -122,8 +102,8 @@ non terminal Block method_body;
 non terminal MethodCall method_call;
 non terminal List<Argument> arguments_list;
 non terminal Block block;
-non terminal String decl;
-non terminal List<String> decl_list;
+non terminal DeclarationIdentifier decl;
+non terminal List<DeclarationIdentifier> decl_list;
 non terminal Statement statement;
 non terminal List<Statement> statement_list;
 non terminal Location location;
@@ -151,29 +131,29 @@ precedence left uNOT;
  */
 
 /* Program */
-program ::= class_decl 
-	| class_decl program 	
+program ::= class_decl:cd 						{: RESULT = new Program(new LinkedList<ClassDeclaration>(Arrays.asList(cd))); :}    	
+	| class_decl:cd program:p 					{: p.addClassDeclaration(cd); RESULT = p; :}	
 	;
 
 /* Class */
-class_decl ::= CLASS ID L_BRACE field_decl_list:fdl method_decl_list:mdl R_BRACE 	{: RESULT = new ClassDeclaration(fdl,mdl);:}
-	|	CLASS ID L_BRACE field_decl_list:fdl R_BRACE 								{: RESULT = new ClassDeclaration(fdl,new LinkedList<MethodDeclaration>());:}
+class_decl ::= CLASS ID:id L_BRACE field_decl_list:fdl method_decl_list:mdl R_BRACE 	{: RESULT = new ClassDeclaration(id,fdl,mdl,idleft+1,idright+1);:}
+	|	CLASS ID:id L_BRACE field_decl_list:fdl R_BRACE 								{: RESULT = new ClassDeclaration(id,fdl,idleft+1,idright+1);:}
 	;
 
 /* Fields declarations */
-field_decl_list ::= field_decl_list:l field_decl:f  {: l.add(0,f); RESULT = l; :}
+field_decl_list ::= field_decl_list:l field_decl:f  {: l.add(f); RESULT = l; :}
 	|	/*empty field_decl_list*/ 					{: RESULT = new LinkedList<FieldDeclaration>();:}
 	;
 
 field_decl ::= type:t decl_list:l SEMI_COLON  		{: RESULT = new FieldDeclaration(t,l); :}		
 	;
 
-decl_list ::= decl:d 								{: RESULT = new LinkedList<String>(Arrays.asList(d)); :}
+decl_list ::= decl:d 								{: RESULT = new LinkedList<DeclarationIdentifier>(Arrays.asList(d)); :}
 	| decl:d COMMA decl_list:l 						{: l.add(0,d); RESULT = l; :}
 	;
 
-decl ::= ID:id 										{: RESULT = id; :}
-	| ID L_BRACKET INT_LITERAL R_BRACKET
+decl ::= ID:id 										{: RESULT = new DeclarationIdentifier(id,idleft+1,idright+1); :}
+	| ID:id L_BRACKET INT_LITERAL:n R_BRACKET 		{: RESULT = new DeclarationIdentifier(id,n.getValue(),idleft+1,idright+1); :}
 	;
 
 /* Methods declarations */
@@ -182,10 +162,10 @@ method_decl_list ::= method_decl:m method_decl_list:l 	{: l.add(0,m); RESULT = l
 	|  method_decl:m 									{: RESULT = new LinkedList<MethodDeclaration>(Arrays.asList(m));:}
 	;
 
-method_decl ::= type:t ID:id L_PAREN R_PAREN method_body:b      	{: RESULT = new MethodDeclaration(t,id,new LinkedList<Argument>(),b); :}
-	| type:t ID:id L_PAREN arguments_list:l R_PAREN method_body:b   {: RESULT = new MethodDeclaration(t,id,l,b); :}
-	| VOID ID:id L_PAREN R_PAREN method_body:b 						{: RESULT = new MethodDeclaration(Type.VOID,id,new LinkedList<Argument>(),b); :}
-	| VOID ID:id L_PAREN arguments_list:l R_PAREN method_body:b 	{: RESULT = new MethodDeclaration(Type.VOID,id,l,b); :}
+method_decl ::= type:t ID:id L_PAREN R_PAREN method_body:b      	{: RESULT = new MethodDeclaration(t,id,new LinkedList<Argument>(),b,idleft+1,idright+1); :}
+	| type:t ID:id L_PAREN arguments_list:l R_PAREN method_body:b   {: RESULT = new MethodDeclaration(t,id,l,b,idleft+1,idright+1); :}
+	| VOID ID:id L_PAREN R_PAREN method_body:b 						{: RESULT = new MethodDeclaration(Type.VOID,id,new LinkedList<Argument>(),b,idleft+1,idright+1); :}
+	| VOID ID:id L_PAREN arguments_list:l R_PAREN method_body:b 	{: RESULT = new MethodDeclaration(Type.VOID,id,l,b,idleft+1,idright+1); :}
 	;
 
 arguments_list ::= type:t ID:id      		{: RESULT = new LinkedList<Argument>(Arrays.asList(new Argument(t,id)));:}
@@ -205,26 +185,26 @@ statement_list ::=  statement_list:l statement:s  	{: l.add(0,s); RESULT = l; :}
 	|	statement:s 								{: RESULT = new LinkedList<Statement>(Arrays.asList(s));:}
 	;
 
-statement ::= location:l EQ expr:e SEMI_COLON 			{: RESULT = new AssignStatement(l,AssignOpType.ASSIGN,e);:}
-	| 	location:l PLUS_EQ expr:e SEMI_COLON			{: RESULT = new AssignStatement(l,AssignOpType.INCREMENT,e);:}			
-	|	location:l MINUS_EQ expr:e SEMI_COLON			{: RESULT = new AssignStatement(l,AssignOpType.DECREMENT,e);:}
-	|	method_call:m SEMI_COLON 						
-	|	IF L_PAREN expr:cond R_PAREN block:b 				{: RESULT = new IfStatement(cond,b); :}
-	|	IF L_PAREN expr:cond R_PAREN block:ib ELSE block:eb	{: RESULT = new IfStatement(cond,ib,eb);:}
-	|	FOR ID EQ expr COMMA expr block
-	|	WHILE expr block
-	|	RETURN expr SEMI_COLON
-	|	RETURN SEMI_COLON
-	|	BREAK SEMI_COLON
-	|	CONTINUE SEMI_COLON
+statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatement(l,AssignOpType.ASSIGN,e);:}
+	| 	location:l PLUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.INCREMENT,e);:}			
+	|	location:l MINUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.DECREMENT,e);:}
+	|	method_call:m SEMI_COLON 							{: RESULT = new MethodCallStatement(m); :}
+	|	IF L_PAREN expr:cond R_PAREN block:b 				{: RESULT = new IfStatement(cond,b,condleft+1,condright+1); :}
+	|	IF L_PAREN expr:cond R_PAREN block:ib ELSE block:eb	{: RESULT = new IfStatement(cond,ib,eb,condleft+1,condright+1);:}
+	|	FOR ID:id EQ expr:cond COMMA expr:e block:b     	{: RESULT = new ForStatement(id,cond,e,b,idleft+1,idright+1);:}
+	|	WHILE expr:cond block:b 							{: RESULT = new WhileStatement(cond,b,condleft+1,condright+1);:}
+	|	RETURN:r expr:e SEMI_COLON 							{: RESULT = new ReturnStatement(e,rleft+1,rright+1);:}
+	|	RETURN SEMI_COLON 									{: RESULT = new ReturnStatement();:}
+	|	BREAK SEMI_COLON 									{: RESULT = new BreakStatement();:}
+	|	CONTINUE SEMI_COLON 								{: RESULT = new ContinueStatement();:}
 	|	SEMI_COLON
-	|	block
+	|	block:b 											{: RESULT = b; :}
 	;
 
-location ::= ID:id 												{: RESULT = new VarLocation(id); :}
-	|	ID:id extended_location:l								{: RESULT = new VarLocation(id,l); :}
-	|	ID:id L_BRACKET expr:e R_BRACKET						{: RESULT = new VarArrayLocation(id,e); :}
-	|	ID:id extended_location:l L_BRACKET expr:e R_BRACKET	{: RESULT = new VarArrayLocation(id,e,l); :}
+location ::= ID:id 												{: RESULT = new VarLocation(id,idleft+1,idright+1); :}
+	|	ID:id extended_location:l								{: RESULT = new VarLocation(id,l,idleft+1,idright+1); :}
+	|	ID:id L_BRACKET expr:e R_BRACKET						{: RESULT = new VarArrayLocation(id,e,idleft+1,idright+1); :}
+	|	ID:id extended_location:l L_BRACKET expr:e R_BRACKET	{: RESULT = new VarArrayLocation(id,e,l,idleft+1,idright+1); :}
 	;
 
 extended_location ::= DOT ID:id extended_location:el 	{: el.add(0,id); RESULT = el; :}
@@ -234,33 +214,33 @@ extended_location ::= DOT ID:id extended_location:el 	{: el.add(0,id); RESULT = 
 expr ::= location:loc 							{: RESULT = loc; :}
 	|	method_call:m 							{: RESULT = m; :}
 	|	literal:lit 							{: RESULT = lit; :}
-	|	expr:e1 PLUS expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.PLUS,e2); :}
-	|  	expr:e1 MINUS expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MINUS,e2); :}
-	| 	expr:e1 TIMES expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MULTIPLY,e2); :}
-	| 	expr:e1 DIVIDE expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.DIVIDE,e2); :}
-	|	expr:e1 MOD expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.MOD,e2); :}
-	|	expr:e1 LESS expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.LE,e2); :}
-	| 	expr:e1 LESS_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.LEQ,e2); :}
-	|	expr:e1 GTR expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.GE,e2); :}
-	| 	expr:e1 GTR_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.GEQ,e2); :}
-	| 	expr:e1 EQ_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.CEQ,e2); :}
-	|	expr:e1 NOT_EQ expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.NEQ,e2); :}
-	|	expr:e1 AND expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.AND,e2); :}
-	| 	expr:e1 OR expr:e2						{: RESULT = new BinOpExpr(e1,BinOpType.OR,e2); :}
-	|	MINUS expr:e 							{: RESULT = new UnaryOpExpr(UnaryOpType.MINUS,e); :}
+	|	expr:e1 PLUS:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.PLUS,e2,oleft+1,oright+1); :}
+	|  	expr:e1 MINUS:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MINUS,e2,oleft+1,oright+1); :}
+	| 	expr:e1 TIMES:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MULTIPLY,e2,oleft+1,oright+1); :}
+	| 	expr:e1 DIVIDE:o expr:e2				{: RESULT = new BinOpExpr(e1,BinOpType.DIVIDE,e2,oleft+1,oright+1); :}
+	|	expr:e1 MOD:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.MOD,e2,oleft+1,oright+1); :}
+	|	expr:e1 LESS:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.LE,e2,oleft+1,oright+1); :}
+	| 	expr:e1 LESS_EQ:o expr:e2				{: RESULT = new BinOpExpr(e1,BinOpType.LEQ,e2,oleft+1,oright+1); :}
+	|	expr:e1 GTR:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.GE,e2,oleft+1,oright+1); :}
+	| 	expr:e1 GTR_EQ:o expr:e2				{: RESULT = new BinOpExpr(e1,BinOpType.GEQ,e2,oleft+1,oright+1); :}
+	| 	expr:e1 EQ_EQ:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.CEQ,e2,oleft+1,oright+1); :}
+	|	expr:e1 NOT_EQ:o expr:e2				{: RESULT = new BinOpExpr(e1,BinOpType.NEQ,e2,oleft+1,oright+1); :}
+	|	expr:e1 AND:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.AND,e2,oleft+1,oright+1); :}
+	| 	expr:e1 OR:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.OR,e2,oleft+1,oright+1); :}
+	|	MINUS:o expr:e 							{: RESULT = new UnaryOpExpr(UnaryOpType.MINUS,e,oleft+1,oright+1); :}
 	%prec uNOT
-	|	NOT expr:e 								{: RESULT = new UnaryOpExpr(UnaryOpType.NOT,e);:}
+	|	NOT:o expr:e 								{: RESULT = new UnaryOpExpr(UnaryOpType.NOT,e,oleft+1,oright+1);:}
 	%prec uNOT 
 	|	L_PAREN expr:e R_PAREN					{: RESULT = new NullaryExpr(e); :}
 	;
 
-method_call ::= ID:id L_PAREN R_PAREN							{: RESULT = new MethodCall(id); :} 
-	|	ID:id extended_location:l L_PAREN R_PAREN				{: RESULT = new MethodCall(id,l); :}
-	| 	ID:id L_PAREN expr_list:el R_PAREN						{: RESULT = new MethodCall(id,new LinkedList<String>(),el); :}
-	|	ID:id extended_location:l L_PAREN expr_list:el R_PAREN	{: RESULT = new MethodCall(id,l,el); :}
+method_call ::= ID:id L_PAREN R_PAREN							{: RESULT = new MethodCall(id,idleft+1,idright+1); :} 
+	|	ID:id extended_location:l L_PAREN R_PAREN				{: RESULT = new MethodCall(id,l,idleft+1,idright+1); :}
+	| 	ID:id L_PAREN expr_list:el R_PAREN						{: RESULT = new MethodCall(id,new LinkedList<String>(),el,idleft+1,idright+1); :}
+	|	ID:id extended_location:l L_PAREN expr_list:el R_PAREN	{: RESULT = new MethodCall(id,l,el,idleft+1,idright+1); :}
 	;
 
-expr_list ::= expr:e COMMA expr_list:l 				{: l.add(e) ; RESULT = l; :} 
+expr_list ::= expr:e COMMA expr_list:l 				{: l.add(e) ; RESULT = (List<Expression>)l; :} 
 	|	expr:e  									{: RESULT = new LinkedList<Expression>(Arrays.asList(e)); :}
 	;
 
