@@ -21,14 +21,18 @@ Installation
    	CtdsScannerStandalone.java (Representing the lexical analyzaer for testing purposes)
    	CTdsParser.java (Representing the parser defined in the file src/main/cup/ctdsparser.cup)
    	CTdsSymbol.java (Representing the symbols of the language defined in the same file as the parser)
+    CTdsCompiler.java (Representing the entire compiler)
   ```
 
 Running
 =======
+ 
  - Run the defined tests ``` ./test.sh ```
  
- - Run your own file ``` ./runParser.sh file ``` 
+ - Run only the parser with your own file ``` ./runParser.sh file.ctds ``` 
  
+ - Run the entire compiler ``` ./runCompiler.sh file.ctds ```
+
   [unrc]: http://dc.exa.unrc.edu.ar/ 
   [Java]:  http://www.java.com/en/
   [Junit]: http://junit.org/
