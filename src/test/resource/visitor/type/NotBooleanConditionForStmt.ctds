@@ -1,0 +1,10 @@
+class A {
+	
+	void main() {
+		int x;
+		for x=2, x {
+			x = x + 1;
+		}
+	}
+	
+}

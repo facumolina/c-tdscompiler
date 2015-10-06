@@ -1,0 +1,11 @@
+class A {
+	
+	int square(int x) {
+		return x*x;
+	}
+
+	void main() {
+		int x,y,z;
+		x = (y*y)+square(z);
+	}
+}

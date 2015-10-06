@@ -1,0 +1,11 @@
+class A {
+	
+	void main() {
+		int x;
+		if ((x+1)<10) {
+			x = 3;
+		} else {
+			x = 2;
+		}
+	}
+}

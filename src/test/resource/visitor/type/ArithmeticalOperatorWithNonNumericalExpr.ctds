@@ -1,0 +1,11 @@
+class A {
+	
+	boolean method() {
+		return false;
+	}
+
+	void main() {
+		int x,y,z;
+		x = (y*y)+method();
+	}
+}

@@ -1,0 +1,16 @@
+class A {
+	
+	boolean methodBoolean1() {
+		return true;
+	}
+
+	boolean methodBoolean2() {
+		return true;
+	}
+
+	void main() {
+		boolean x;
+		x = methodBoolean1() && methodBoolean2();
+	}
+	
+}

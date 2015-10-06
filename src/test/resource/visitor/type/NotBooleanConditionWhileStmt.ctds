@@ -1,0 +1,10 @@
+class A {
+	
+	void main() {
+		int x;
+		while x {
+			x = x+1;
+		}
+	}
+	
+}

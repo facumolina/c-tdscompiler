@@ -1,0 +1,10 @@
+class A {
+	
+	int method() {
+		return (2*2)+1;
+	}
+
+	void main() {
+
+	}
+}

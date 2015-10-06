@@ -1,0 +1,14 @@
+class A {
+	
+	int method(int x) {
+		return x;
+	}
+
+	void main() {
+		int y;
+		boolean b;
+		b = true;
+		y = method(b);
+	}
+	
+}

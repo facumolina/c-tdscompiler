@@ -1,0 +1,12 @@
+class A {
+	
+	int x;
+	
+	int method() {
+		return 2;
+	}
+	void main() {
+		x = method();
+	}
+	
+}
