@@ -167,16 +167,11 @@ public class CTdsParserTest {
 	public static boolean genericTest(String inputFile) throws IOException {
 		String[] argv = new String[1];
 		argv[0] = "../src/test/resource/parser/"+inputFile;
-
-		boolean do_debug_parse = false;
     
 		CTdsParser parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
 		Symbol parseTree = null;
 		try {
-			if (do_debug_parse)
-				 parseTree = parser.debug_parse();
-			else 
-				parseTree = parser.parse();
+			parseTree = parser.parse();
 			return true;
 		} catch (Exception e) {
 			return false;
