@@ -1,7 +1,7 @@
 #!/bin/bash
-echo "---------------------------- Executing Parser -------------------------------"
+echo "----------------- Executing Parser -----------------"
 cd classes
 export CLASSPATH=""
 for file in `ls ../lib/`; do export CLASSPATH=$CLASSPATH:../lib/$file; done
 
-java -cp $CLASSPATH:. CTdsParser ../$1
+java -cp $CLASSPATH:. CTdsParserRunner ../$1
