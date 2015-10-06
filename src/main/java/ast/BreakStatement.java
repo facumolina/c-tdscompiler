@@ -7,8 +7,18 @@ public class BreakStatement extends Statement {
 	/**
 	 * Constructor
 	 */
-	public BreakStatement() {
-		
+	public BreakStatement(int line,int column) {
+		this.setLineNumber(line);
+		this.setColumnNumber(column);
+	}
+
+	/**
+	 * Get outside of cycle error message
+	 */
+	public String getOutsideOfCycleError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Declaration Error: the break statement is outside of a cycle ";
+		return lineAndColumn + error;
 	}
 
 	@Override

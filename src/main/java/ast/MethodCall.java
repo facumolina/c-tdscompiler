@@ -124,6 +124,16 @@ public class MethodCall extends Expression {
 		return lineAndColumn + error; 
 	}
 
+	/**
+	 * Get arity error message
+	 */
+	public String getArityErrorMessage() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Method Call Error: the method was declared with " + decl.getArguments().size() 
+				+ " arguments, but was invoked with " + arguments.size() + " arguments";
+		return lineAndColumn + error; 
+	}
+
 	@Override
 	public String toString() {
 		String methodCallString = id;

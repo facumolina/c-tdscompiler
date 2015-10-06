@@ -4,9 +4,21 @@
 
 public class ContinueStatement extends Statement {
 	
+	/**
+	 * Constructor
+	 */
+	public ContinueStatement(int line,int column) {
+		this.setLineNumber(line);
+		this.setColumnNumber(column);
+	}
 
-	public ContinueStatement() {
-		
+	/**
+	 * Get outside of cycle error message
+	 */
+	public String getOutsideOfCycleError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Declaration Error: the continue statement is outside of a cycle ";
+		return lineAndColumn + error;
 	}
 
 	@Override
