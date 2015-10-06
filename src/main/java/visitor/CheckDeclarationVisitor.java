@@ -14,11 +14,14 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	private static final int method_level = 2;
 	private static final int method_field_level = 3;
 
+	private static int inCycle;				// Increment every time that a cycle begins
+											// and decrement every time that a cycle ends
 	/**
 	 * Constructor
 	 */
 	public CheckDeclarationVisitor() {
 		table = new SymbolsTable();
+		inCycle = 0;
 	}
 
 	/**
@@ -68,7 +71,7 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		for (DeclarationIdentifier d : decl.getListIds()) {
 			if (table.addSymbol(d)) {
 				// The symbol was added successfully. Set the type for type check purposes.
-				d.setType(decl.getType()); 
+				//d.setType(decl.getType()); 
 			} else {
 				// The symbol already exists.
 				fieldErrors.add(d.getDeclarationErrorMessage());
@@ -83,7 +86,6 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	 * and accepting the block.
 	 */
 	public List<String> visit(MethodDeclaration decl) {
-		System.out.println("Accepting method decl " + decl.getId() + " with level " + table.getLevel());
 		LinkedList<String> methodErrors = new LinkedList<String>();
 		if (table.addSymbol(decl)) {
 			// The symbol was added successfully. 
@@ -100,6 +102,9 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 				}
 			}
 			table.incrementLevel();
+			for (Argument arg : decl.getArguments()) {
+				methodErrors.addAll(arg.accept(this));
+			}
 			methodErrors.addAll(decl.getBlock().accept(this));
 			table.decrementLevel();
 		} else {
@@ -110,10 +115,17 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit argument
+	 * Visit argument accepting it if it not exists in the symbols table
 	 */
 	public List<String> visit(Argument arg) {
-		return new LinkedList<String>();
+		LinkedList<String> argErrors = new LinkedList<String>();
+		DeclarationIdentifier argDeclaration = new DeclarationIdentifier(arg.getId(),arg.getLineNumber(),arg.getColumnNumber());
+		argDeclaration.setType(arg.getType());
+		if (!table.addSymbol(argDeclaration)) {
+			// Already exists an argument with the same id
+			argErrors.add(arg.getDeclarationErrorMessage());
+		}
+		return argErrors;
 	}
 
 	/**
@@ -169,10 +181,12 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	 * expression and the block
 	 */
 	public List<String> visit(ForStatement stmt) {
+		inCycle++;
 		LinkedList<String> forStmtErrors = new LinkedList<String>();
 		forStmtErrors.addAll(stmt.getInitialAssign().accept(this));
 		forStmtErrors.addAll(stmt.getConditionExpression().accept(this));
 		forStmtErrors.addAll(stmt.getBlock().accept(this));
+		inCycle--;
 		return forStmtErrors;
 	}
 
@@ -180,24 +194,36 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
  	 * Visit a while statement and accepts the condition and the block.
 	 */
 	public List<String> visit(WhileStatement stmt){
+		inCycle++;
 		LinkedList<String> whileStmtErrors = new LinkedList<String>();
 		whileStmtErrors.addAll(stmt.getCondition().accept(this));
 		whileStmtErrors.addAll(stmt.getBlock().accept(this));
+		inCycle--;
 		return whileStmtErrors;
 	}
 
 	/**
-	 * Visit break statement
+	 * Visit break statement accepting it only if it appears in a cycle
 	 */
 	public List<String> visit(BreakStatement stmt) {
-		return new LinkedList<String>();
+		LinkedList<String> breakError = new LinkedList<String>();
+		if (inCycle==0) {
+			// The statement is outside of a cycle
+			breakError.add(stmt.getOutsideOfCycleError());
+		}
+		return breakError;
 	}
 
 	/**
-	 * Visit continue statement
+	 * Visit continue statement accepting it only if it appears in a cycle
 	 */
 	public List<String> visit(ContinueStatement stmt) {
-		return new LinkedList<String>();
+		LinkedList<String> continueError = new LinkedList<String>();
+		if (inCycle==0) {
+			// The statement is outside of a cycle
+			continueError.add(stmt.getOutsideOfCycleError());
+		}
+		return continueError;
 	}
 	
 	/**
@@ -404,8 +430,11 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 			decl = (MethodDeclaration)searchDeclaration(call.getId(),false,call.getListIds().get(0),false);
 		}
 		if (decl!=null) {
-				// The method declaration was founded.
+			// The method declaration was founded.
 			call.setDeclaration(decl);
+			for (Expression e : call.getArguments()) {
+				methodCallError.addAll(e.accept(this));
+			}
 		} else {
 			methodCallError.add(call.getDeclarationErrorMessage());
 		}

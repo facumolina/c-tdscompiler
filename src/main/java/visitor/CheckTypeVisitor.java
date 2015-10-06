@@ -113,7 +113,7 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	 * Visit a method call statement
 	 */
 	public List<String> visit(MethodCallStatement stmt) {
-		return new LinkedList<String>();
+		return stmt.getMethodCall().accept(this);
 	}
 
 	/**
@@ -338,14 +338,36 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit method call 
+	 * Visit method call checking the arguments 
 	 */
 	public List<String> visit(MethodCall call) {
-		return new LinkedList<String>();
+		LinkedList<String> methodCallErrors = new LinkedList<String>();
+		if (call.getArguments().size()==call.getDeclaration().getArguments().size()) {
+			// The method declaration and the method call has the same arity, so
+			// check the types
+			int i=0;
+			while (i < call.getArguments().size()) {
+				Expression expression = call.getArguments().get(i);
+				methodCallErrors.addAll(expression.accept(this));
+				if (methodCallErrors.size()==0) {
+					// There are no errors in the expression
+					Argument arg = call.getDeclaration().getArguments().get(i);
+					if (!expression.getType().equals(arg.getType())) {
+						// Type error in argument
+						methodCallErrors.add(arg.getArgumentTypeError(expression,i));
+					}
+				}
+				i++;
+			}
+		} else {
+			// The method declaration and the method call has different arity
+			methodCallErrors.add(call.getArityErrorMessage());	
+		}
+		return methodCallErrors;
 	}
 
 	/**
-	 * Visit block
+	 * Visit block accepting each field declaration and each statement
 	 */
 	public List<String> visit(Block block) {
 		LinkedList<String> blockErrors = new LinkedList<String>();
