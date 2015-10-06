@@ -41,7 +41,7 @@ public class CTdsCompiler {
  				}
  			}
  		} catch (Exception e) {
- 			e.printStackTrace();
+ 			System.out.println("Compilation failed");
  		}
  		
  	}
@@ -56,7 +56,7 @@ public class CTdsCompiler {
  	}
 
  	/**
- 	 * Check that for each class the amount of mains methods is 1.
+ 	 * Check that for each class the amount of mains methods is one.
  	 */
  	public static void checkMains(Program p) {
  		CheckMainVisitor mainVisitor = new CheckMainVisitor();

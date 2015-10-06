@@ -89,24 +89,27 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		LinkedList<String> methodErrors = new LinkedList<String>();
 		if (table.addSymbol(decl)) {
 			// The symbol was added successfully. 
-			if (!decl.getType().equals(Type.VOID)) {
-				// Method type is not void
-				if (!decl.hasReturnStatement()) {
-					// The method does not have a return statement
-					methodErrors.add(decl.getMissingReturnStatementError());
-				} 
-			} else {
-				// Method type is void
-				if (decl.hasReturnStatement()) {
-					methodErrors.add(decl.getIncorrectReturnStatementError());				
+			if (!decl.isExtern()) {
+				if (!decl.getType().equals(Type.VOID)) {
+					// Method type is not void
+					if (!decl.hasReturnStatement()) {
+						// The method does not have a return statement
+						methodErrors.add(decl.getMissingReturnStatementError());
+					} 
+				} else {
+					// Method type is void
+					if (decl.hasReturnStatement()) {
+						methodErrors.add(decl.getIncorrectReturnStatementError());				
+					}
 				}
+				table.incrementLevel();
+				for (Argument arg : decl.getArguments()) {
+					methodErrors.addAll(arg.accept(this));
+				}
+				methodErrors.addAll(decl.getBlock().accept(this));
+				table.decrementLevel();
 			}
-			table.incrementLevel();
-			for (Argument arg : decl.getArguments()) {
-				methodErrors.addAll(arg.accept(this));
-			}
-			methodErrors.addAll(decl.getBlock().accept(this));
-			table.decrementLevel();
+			
 		} else {
 			// The symbol already exists
 			methodErrors.add(decl.getDeclarationErrorMessage());

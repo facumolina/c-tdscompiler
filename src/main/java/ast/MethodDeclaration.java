@@ -82,11 +82,14 @@ public class MethodDeclaration extends Identifiable {
 	 * Returns true if has a return statement
 	 */
 	public boolean hasReturnStatement() {
-		for (Statement statement : block.getStatements()) {
-			if (statement instanceof ReturnStatement) {
-				return true;
+		if (!isExtern) {
+			for (Statement statement : block.getStatements()) {
+				if (statement instanceof ReturnStatement) {
+					return true;
+				}
 			}
-		}
+			return false;
+		} 
 		return false;
 	}
 

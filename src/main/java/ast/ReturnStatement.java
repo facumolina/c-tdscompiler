@@ -8,8 +8,10 @@ public class ReturnStatement extends Statement {
 	/**
 	 * Constructor
 	 */
-	public ReturnStatement() {
+	public ReturnStatement(int line,int column) {
 		this.expression = null;
+		this.setLineNumber(line);
+		this.setColumnNumber(column);
 	}
 
 	/**
@@ -42,6 +44,16 @@ public class ReturnStatement extends Statement {
 		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
 		String error = "Type error: the return has type " + expression.getType().toString() 
 				+ ", but the declared type in the method is " + m.getType().toString();
+		return lineAndColumn + error ;
+	}
+
+	/**
+	 * Get type error message
+	 */
+	public String getTypeNotVoidErrorMessage(MethodDeclaration m) {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Type error: the return has not an expression , but the " 
+			+ "declared type in the method is " + m.getType().toString();
 		return lineAndColumn + error ;
 	}
 

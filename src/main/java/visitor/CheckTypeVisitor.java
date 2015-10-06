@@ -69,9 +69,12 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(MethodDeclaration decl) {
 		table.addSymbol(decl);
-		table.incrementLevel();
-		LinkedList<String> methodErrors = (LinkedList<String>)decl.getBlock().accept(this);
-		table.decrementLevel();
+		LinkedList<String> methodErrors = new LinkedList<String>();
+		if (!decl.isExtern()) {
+			table.incrementLevel();
+		 	methodErrors = (LinkedList<String>)decl.getBlock().accept(this);
+			table.decrementLevel();
+		}
 		return methodErrors;
 	}
 
@@ -122,14 +125,22 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(ReturnStatement stmt) {
 		LinkedList<String> returnErrors = new LinkedList<String>();
-		returnErrors.addAll(stmt.getExpression().accept(this));
-		if (returnErrors.size()==0) {
-			// There are no errors in the return expression
-			Expression returnExpression = stmt.getExpression();
+		if (stmt.hasExpression()) {
+			returnErrors.addAll(stmt.getExpression().accept(this));
+			if (returnErrors.size()==0) {
+				// There are no errors in the return expression
+				Expression returnExpression = stmt.getExpression();
+				MethodDeclaration currentMethod = getCurrentMethod();
+				if (!currentMethod.getType().equals(returnExpression.getType())) {
+					// The type is not the same, so add the error.
+					returnErrors.add(stmt.getTypeErrorMessage(currentMethod));
+				}
+			}
+		} else {
 			MethodDeclaration currentMethod = getCurrentMethod();
-			if (!currentMethod.getType().equals(returnExpression.getType())) {
-				// The type is not the same, so add the error.
-				returnErrors.add(stmt.getTypeErrorMessage(currentMethod));
+			if (!currentMethod.getType().equals(Type.VOID)) {
+				// The type is not void.
+				returnErrors.add(stmt.getTypeNotVoidErrorMessage(currentMethod));
 			}
 		}
 		return returnErrors;
