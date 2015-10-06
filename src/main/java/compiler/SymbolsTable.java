@@ -50,7 +50,6 @@ public class SymbolsTable {
 			table.get(currentLevel).add(symbol);
 			return true;
 		} else {
-			System.out.println("Symbol already declared");
 			return false;
 		}
 	}
@@ -102,14 +101,4 @@ public class SymbolsTable {
 		return null;
 	}
 	
-	private boolean hasId(String astName) {
-		if (astName.equals("ClassDeclaration")) {
-			return true;
-		} else if (astName.equals("FieldDeclaration")) {
-			return true;
-		} else if (astName.equals("MethodDeclaration")) {
-			return true;
-		}
-		return false;
-	}
 }

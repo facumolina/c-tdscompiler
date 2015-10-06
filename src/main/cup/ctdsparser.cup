@@ -168,8 +168,8 @@ method_decl ::= type:t ID:id L_PAREN R_PAREN method_body:b      	{: RESULT = new
 	| VOID ID:id L_PAREN arguments_list:l R_PAREN method_body:b 	{: RESULT = new MethodDeclaration(Type.VOID,id,l,b,idleft+1,idright+1); :}
 	;
 
-arguments_list ::= type:t ID:id      		{: RESULT = new LinkedList<Argument>(Arrays.asList(new Argument(t,id)));:}
-	| 	type:t ID:id COMMA arguments_list:l {: l.add(0,new Argument(t,id)); RESULT = l; :}
+arguments_list ::= type:t ID:id      		{: RESULT = new LinkedList<Argument>(Arrays.asList(new Argument(t,id,idleft,idright)));:}
+	| 	type:t ID:id COMMA arguments_list:l {: l.add(0,new Argument(t,id,idleft,idright)); RESULT = l; :}
 	;
 	
 method_body ::= block:b 					{: RESULT = b; :}
@@ -195,8 +195,8 @@ statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatemen
 	|	WHILE expr:cond block:b 							{: RESULT = new WhileStatement(cond,b,condleft+1,condright+1);:}
 	|	RETURN:r expr:e SEMI_COLON 							{: RESULT = new ReturnStatement(e,rleft+1,rright+1);:}
 	|	RETURN SEMI_COLON 									{: RESULT = new ReturnStatement();:}
-	|	BREAK SEMI_COLON 									{: RESULT = new BreakStatement();:}
-	|	CONTINUE SEMI_COLON 								{: RESULT = new ContinueStatement();:}
+	|	BREAK:b SEMI_COLON 									{: RESULT = new BreakStatement(bleft+1,bright+1);:}
+	|	CONTINUE:c SEMI_COLON 								{: RESULT = new ContinueStatement(cleft+1,cright+1);:}
 	|	SEMI_COLON
 	|	block:b 											{: RESULT = b; :}
 	;
