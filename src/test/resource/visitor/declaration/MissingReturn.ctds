@@ -1,0 +1,10 @@
+class A {
+	
+	int y;
+
+	int method() {
+		int x;
+		x = 23;
+	}
+
+}

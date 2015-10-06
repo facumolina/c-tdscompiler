@@ -1,0 +1,12 @@
+class A {
+	
+	int x;
+
+}
+
+class B {
+	
+	void main() {
+		A.x = 2;
+	}
+}
