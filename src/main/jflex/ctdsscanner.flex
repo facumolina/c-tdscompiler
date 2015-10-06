@@ -115,4 +115,4 @@ import java_cup.runtime.*;
 {white_space}                          { /* Ignore whitespace */ }
 
 /* Error */
-[^]                                    { return symbol(CTdsSymbol.ERROR,yytext()); }
+[^]                                    { System.out.println("Invalid symbol " + yytext()) ; System.exit(1); }

@@ -718,7 +718,7 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            { return symbol(CTdsSymbol.ERROR,yytext());
+            { System.out.println("Invalid symbol " + yytext()) ; System.exit(1);
             }
           case 48: break;
           case 2: 

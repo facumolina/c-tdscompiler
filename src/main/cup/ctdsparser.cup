@@ -81,7 +81,6 @@ terminal uNOT;
 terminal DOT;
 terminal COMMA;
 terminal SEMI_COLON;
-terminal ERROR;
 terminal IntLiteral INT_LITERAL;
 terminal FloatLiteral FLOAT_LITERAL;
 terminal BooleanLiteral TRUE;
@@ -194,7 +193,7 @@ statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatemen
 	|	FOR ID:id EQ expr:cond COMMA expr:e block:b     	{: RESULT = new ForStatement(id,cond,e,b,idleft+1,idright+1);:}
 	|	WHILE expr:cond block:b 							{: RESULT = new WhileStatement(cond,b,condleft+1,condright+1);:}
 	|	RETURN:r expr:e SEMI_COLON 							{: RESULT = new ReturnStatement(e,rleft+1,rright+1);:}
-	|	RETURN SEMI_COLON 									{: RESULT = new ReturnStatement();:}
+	|	RETURN:r SEMI_COLON 								{: RESULT = new ReturnStatement(rleft+1,rright+1);:}
 	|	BREAK:b SEMI_COLON 									{: RESULT = new BreakStatement(bleft+1,bright+1);:}
 	|	CONTINUE:c SEMI_COLON 								{: RESULT = new ContinueStatement(cleft+1,cright+1);:}
 	|	SEMI_COLON
