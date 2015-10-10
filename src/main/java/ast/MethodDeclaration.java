@@ -83,14 +83,48 @@ public class MethodDeclaration extends Identifiable {
 	 */
 	public boolean hasReturnStatement() {
 		if (!isExtern) {
-			for (Statement statement : block.getStatements()) {
+			/*for (Statement statement : block.getStatements()) {
 				if (statement instanceof ReturnStatement) {
 					return true;
 				}
 			}
-			return false;
+			return false;*/
+			return hasReturnStatementRecursive(block);
 		} 
 		return false;
+	}
+
+	private boolean blockWithReturn(Block block) {
+		for (Statement statement : block.getStatements()) {
+			if (statement instanceof ReturnStatement) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * Returns true if the given Block has a return statement in the list of statements
+	 */
+	private boolean hasReturnStatementRecursive(Block block) {
+		if (blockWithReturn(block)) {
+			return true;
+		} else {
+			List<Statement> stmtList = block.getStatements();
+			boolean found = false;
+			for (int i = 0; i < stmtList.size() && !found; i++) {
+				Statement statement = stmtList.get(i);
+				if (statement instanceof IfStatement) {
+					IfStatement ifStatement = (IfStatement) statement;
+					if (ifStatement.hasElseBlock()) {
+						found = hasReturnStatementRecursive(ifStatement.getIfBlock()) && hasReturnStatementRecursive(ifStatement.getElseBlock());	
+					}
+				} else if (statement instanceof Block) {
+					found = hasReturnStatementRecursive((Block)statement);
+				}
+			}
+			return found;
+		}
+		
 	}
 
 	/**
