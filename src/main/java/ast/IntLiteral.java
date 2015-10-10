@@ -1,5 +1,5 @@
 /**
- *
+ * This class represents the int literals
  */
 public class IntLiteral extends Literal {
 	
@@ -20,28 +20,32 @@ public class IntLiteral extends Literal {
 		return Type.INT;
 	}
 
+	/**
+	 * Get the string value
+	 */
 	public String getStringValue() {
 		return rawValue;
 	}
 
+	/**
+	 * Set the string value
+	 */
 	public void setStringValue(String stringValue) {
 		this.rawValue = stringValue;
 	}
 
+	/**
+	 * Get the value
+	 */
 	public Integer getValue() {
 		return value;
 	}
 
+	/**
+	 * Set the value
+	 */
 	public void setValue(int value) {
 		this.value = value;
-	}
-	
-	public String getRawValue() {
-		return rawValue;
-	}
-
-	public void setRawValue(String rawValue) {
-		this.rawValue = rawValue;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
-*
+* This class represents the float literals
 */
 public class FloatLiteral extends Literal {
 
@@ -20,28 +20,32 @@ public class FloatLiteral extends Literal {
 		return Type.FLOAT;
 	}
 
+	/**
+	 * Get string value
+	 */
 	public String getStringValue() {
 		return rawValue;
 	}
 
+	/**
+	 * Set string value
+	 */
 	public void setStringValue(String stringValue) {
 		this.rawValue = stringValue;
 	}
 
+	/**
+	 * Get the value
+	 */
 	public Float getValue() {
 		return value;
 	}
 
+	/**
+	 * Set the value
+	 */
 	public void setValue(float value) {
 		this.value = value;
-	}
-	
-	public String getRawValue() {
-		return rawValue;
-	}
-
-	public void setRawValue(String rawValue) {
-		this.rawValue = rawValue;
 	}
 
 	@Override
