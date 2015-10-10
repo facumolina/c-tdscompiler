@@ -9,6 +9,7 @@ public class CTdsCompiler {
 	
 	private static CTdsParser parser;	// Parser
 	private static LinkedList<String> errors; // Errors
+	
 	/* 
  	 * Main method for run the compiler with an input file 
  	 */
@@ -29,8 +30,8 @@ public class CTdsCompiler {
  			
  			if (errors.size()==0) {
  				// Only check types if there are no previous declarations errors.
- 				checkTypes(program)
-; 			}
+ 				checkTypes(program); 			
+ 			}
  			
  			
  			if (errors.size()==0) {
@@ -62,7 +63,7 @@ public class CTdsCompiler {
  		CheckMainVisitor mainVisitor = new CheckMainVisitor();
  		Integer amountOfMains = mainVisitor.visit(p);
  		if (amountOfMains != 1) {
- 			errors.add("Error: the amount of mains methods is " + amountOfMains +", it should be exactly one");
+ 			errors.add("Error: There must be only one main method without arguments");
  		}
  	}
 
