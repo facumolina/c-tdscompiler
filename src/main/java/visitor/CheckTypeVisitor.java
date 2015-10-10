@@ -125,19 +125,24 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(ReturnStatement stmt) {
 		LinkedList<String> returnErrors = new LinkedList<String>();
+		MethodDeclaration currentMethod = getCurrentMethod();
 		if (stmt.hasExpression()) {
-			returnErrors.addAll(stmt.getExpression().accept(this));
-			if (returnErrors.size()==0) {
-				// There are no errors in the return expression
-				Expression returnExpression = stmt.getExpression();
-				MethodDeclaration currentMethod = getCurrentMethod();
-				if (!currentMethod.getType().equals(returnExpression.getType())) {
-					// The type is not the same, so add the error.
-					returnErrors.add(stmt.getTypeErrorMessage(currentMethod));
+			if (!currentMethod.getType().equals(Type.VOID)) {
+				// The method tpye is not void
+				returnErrors.addAll(stmt.getExpression().accept(this));
+				if (returnErrors.size()==0) {
+					// There are no errors in the return expression
+					Expression returnExpression = stmt.getExpression();
+					if (!currentMethod.getType().equals(returnExpression.getType())) {
+						// The type is not the same, so add the error.
+						returnErrors.add(stmt.getTypeErrorMessage(currentMethod));
+					}
 				}
+			} else {
+				// The method type is void
+				returnErrors.add(currentMethod.getIncorrectReturnStatementError());
 			}
 		} else {
-			MethodDeclaration currentMethod = getCurrentMethod();
 			if (!currentMethod.getType().equals(Type.VOID)) {
 				// The type is not void.
 				returnErrors.add(stmt.getTypeNotVoidErrorMessage(currentMethod));
@@ -192,7 +197,7 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 				forStmtErrors.addAll(stmt.getConditionExpression().accept(this));
 				if (forStmtErrors.size()==0) {
 					// There are no previous errors
-					if (stmt.getConditionExpression().getType().equals(Type.BOOLEAN)) {
+					if (stmt.getConditionExpression().getType().equals(Type.INT)) {
 						// Correct condition expression
 						forStmtErrors.addAll(stmt.getBlock().accept(this));
 					} else {
