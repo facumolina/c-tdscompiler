@@ -117,8 +117,8 @@ non terminal BooleanLiteral bool_literal;
 /*
  * Precedence rules
  */
-precedence left LESS,GTR,EQ,LESS_EQ,GTR_EQ,EQ_EQ,NOT_EQ;
 precedence left AND,OR;
+precedence left LESS,GTR,EQ,LESS_EQ,GTR_EQ,EQ_EQ,NOT_EQ;
 
 precedence left PLUS, MINUS;
 precedence left TIMES, DIVIDE, MOD;
@@ -239,7 +239,7 @@ method_call ::= ID:id L_PAREN R_PAREN							{: RESULT = new MethodCall(id,idleft
 	|	ID:id extended_location:l L_PAREN expr_list:el R_PAREN	{: RESULT = new MethodCall(id,l,el,idleft+1,idright+1); :}
 	;
 
-expr_list ::= expr:e COMMA expr_list:l 				{: l.add(e) ; RESULT = (List<Expression>)l; :} 
+expr_list ::= expr:e COMMA expr_list:l 				{: l.add(0,e) ; RESULT = (List<Expression>)l; :} 
 	|	expr:e  									{: RESULT = new LinkedList<Expression>(Arrays.asList(e)); :}
 	;
 
