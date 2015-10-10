@@ -8,5 +8,6 @@ class B {
 	
 	void main() {
 		A.x = 2;
+		return;
 	}
 }

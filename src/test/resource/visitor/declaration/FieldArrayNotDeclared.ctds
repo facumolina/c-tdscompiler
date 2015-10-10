@@ -2,6 +2,7 @@ class A {
 
 	void main() {
 		x[2] = 3;
+		return;
 	}
 	
 }

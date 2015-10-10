@@ -11,6 +11,7 @@ class A {
 	void main() {
 		boolean x;
 		x = method() && methodBoolean();
+		return;
 	}
 	
 }

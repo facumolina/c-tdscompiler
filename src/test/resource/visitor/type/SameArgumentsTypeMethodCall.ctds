@@ -8,6 +8,7 @@ class A {
 		int y;
 		y = 2;
 		y = method(y);
+		return;
 	}
 	
 }

@@ -2,8 +2,8 @@ class A {
 	
 	void main() {
 		int x;
-		while x {
-			x = x+1;
+		for x=2, x<2 {
+			x = x + 1;
 		}
 		return;
 	}

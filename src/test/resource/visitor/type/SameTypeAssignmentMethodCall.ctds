@@ -7,6 +7,7 @@ class A {
 	}
 	void main() {
 		x = method();
+		return;
 	}
 	
 }

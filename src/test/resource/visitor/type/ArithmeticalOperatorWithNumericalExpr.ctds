@@ -7,5 +7,6 @@ class A {
 	void main() {
 		int x,y,z;
 		x = (y*y)+square(z);
+		return;
 	}
 }

@@ -2,6 +2,7 @@ class A {
 	int x;
 	void method() {
 		x = 2;
+		return;
 	}
 
 }
@@ -10,6 +11,7 @@ class B {
 	
 	void main() {
 		A.method();
+		return;
 	}
 	
 }

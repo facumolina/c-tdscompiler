@@ -9,6 +9,7 @@ class A {
 		boolean b;
 		b = true;
 		y = method(b);
+		return;
 	}
 	
 }

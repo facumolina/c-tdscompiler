@@ -5,6 +5,7 @@ class A {
 
 	void main() {
 		x = y;
+		return;
 	}
 	
 }
