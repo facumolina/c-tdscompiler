@@ -3,6 +3,7 @@ import java.util.LinkedList;
 
 /**
  * This class represents the Class declarations: class ID { ... }
+ * @author Facundo Molina
  */
 public class ClassDeclaration extends Identifiable {
 	
@@ -18,7 +19,6 @@ public class ClassDeclaration extends Identifiable {
 		methodDeclarations = new LinkedList<MethodDeclaration>();
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
-		hasId = true;
 	}
 	
 	/**

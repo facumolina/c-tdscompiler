@@ -1,12 +1,11 @@
 /**
  * This class represents a generic ast node.
+ * @author Facundo Molina
  */
-
 public abstract class AST {
 	
 	private int lineNumber; 			// line number
-	private int colNumber;				// column number
-	protected boolean hasId;			
+	private int colNumber;				// column number		
 
 	/**
 	 * Get line number
@@ -35,14 +34,10 @@ public abstract class AST {
 	public void setColumnNumber(int cn) {
 		colNumber = cn;
 	}
-
-	public boolean hasId() {
-		return hasId;
-	}
 	
 	/**
 	 * Accept a visitor.
 	 */
 	public abstract <T> T accept(ASTVisitor<T> v);
-
+	
 }

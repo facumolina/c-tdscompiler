@@ -1,5 +1,6 @@
 /**
 * This class represents the float literals
+* @author Facundo Molina
 */
 public class FloatLiteral extends Literal {
 
@@ -11,7 +12,7 @@ public class FloatLiteral extends Literal {
 	 * @param: String float
 	 */
 	public FloatLiteral(String val){
-		rawValue = val; // Will convert to float value in semantic check
+		rawValue = val; 
 		value = Float.parseFloat(val);
 	}
 

@@ -3,14 +3,15 @@ import java.util.LinkedList;
 
 /**
  * This class represents the method calls as expresions: ID.ID .. .ID(e1,e2,..,en)
+ * @author Facundo Molina
  */
-
 public class MethodCall extends Expression {
 	
 	private String id; 							// First id
 	private List<String> listIds;				// List of ids after the first dot
 	private List<Expression> arguments; 		// Method arguments
 	private MethodDeclaration decl;				// Declaration associated
+	
 	/*
 	 * Constructor with simple name and no arguments: methodname()
 	 */

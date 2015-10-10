@@ -3,6 +3,7 @@ import java.io.*;
 
 /**
  * This class allow to run the CTdsParser alone.
+ * @author Facundo Molina
  */
 public class CTdsParserRunner {
 	

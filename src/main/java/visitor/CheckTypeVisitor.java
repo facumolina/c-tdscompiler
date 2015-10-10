@@ -3,11 +3,12 @@ import java.util.LinkedList;
 
 /**
  * This class represents a visitor that evalutes the types
+ * @author Facundo Molina
  */
 public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 
-	private SymbolsTable table;
-	private LinkedList<String> errorsList;
+	private SymbolsTable table; 					// Symbols table
+	private LinkedList<String> errorsList;			// Errors
 
 	private static final int class_level = 0;
 	private static final int field_level = 1;

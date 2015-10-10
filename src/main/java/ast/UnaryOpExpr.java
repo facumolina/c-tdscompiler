@@ -1,5 +1,6 @@
 /**
- * This class represents the unary expressions
+ * This class represents the unary expressions: op expr
+ * @author Facundo Molina
  */
 public class UnaryOpExpr extends Expression {
 	

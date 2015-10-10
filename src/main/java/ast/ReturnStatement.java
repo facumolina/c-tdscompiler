@@ -1,5 +1,8 @@
 /**
- * This class represents the Return statement: return expr;
+ * This class represents the Return statements: 
+ * - return;
+ * - return expr; 
+ * @autor Facundo Molina
  */
 public class ReturnStatement extends Statement {
 	

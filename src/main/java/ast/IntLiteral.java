@@ -1,5 +1,6 @@
 /**
  * This class represents the int literals
+ * @author Facundo Molina
  */
 public class IntLiteral extends Literal {
 	
@@ -11,7 +12,7 @@ public class IntLiteral extends Literal {
 	 * @param: String integer
 	 */
 	public IntLiteral(String val){
-		rawValue = val; // Will convert to int value in semantic check
+		rawValue = val; 
 		value = Integer.parseInt(val);
 	}
 

@@ -3,12 +3,12 @@ import java.util.ArrayList;
 
 /**
  * This class represents the symbols table, which is as an array of linked lists.
- * 
+ * @author Facundo Molina
  */
 public class SymbolsTable {
 	
-	private ArrayList<LinkedList<AST>> table;
-	private int currentLevel;
+	private ArrayList<LinkedList<AST>> table;      // Symbols table represented as an array of linked lists
+	private int currentLevel; 					   // Current level, for simulate the stack behaviour
 
 	/**
 	 * Constructor

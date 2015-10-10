@@ -1,5 +1,6 @@
 /**
  * Abstract visitor
+ * @author Facundo Molina
  */
 public interface ASTVisitor<T> {
 

@@ -1,11 +1,11 @@
 /**
  * This class represents the Declaration identifiers id or id[int_literal]
+ * @author Facundo Molina
  */
-
 public class DeclarationIdentifier extends Identifiable {
 	
-	private Integer capacity;
-	private Type type;
+	private Integer capacity; 		// Capacity used if the declaration identifier is the identifier of an array
+	private Type type;				// Type stored 
 
 	/**
 	 * Constructor for declarations identifiers: id
@@ -13,7 +13,6 @@ public class DeclarationIdentifier extends Identifiable {
 	public DeclarationIdentifier(String id,int line, int column) {
 		this.id = id;
 		capacity = null;
-		hasId = true;
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
 	}

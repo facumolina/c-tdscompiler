@@ -19,7 +19,8 @@ import org.junit.runner.Description;
 import java.util.LinkedList;
 
 /* 
- * This class provides a set of tests for the CheckDeclarationVisitor 
+ * This class provides a set of tests for the CheckDeclarationVisitor
+ * @author Facundo Molina
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CheckDeclarationVisitorTest {

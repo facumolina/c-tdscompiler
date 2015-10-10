@@ -1,5 +1,6 @@
 /**
- * This class represents the Location
+ * This class represents the Locations
+ * @author Facundo Molina
  */
 public abstract class Location extends Expression {
 	

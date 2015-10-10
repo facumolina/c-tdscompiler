@@ -3,6 +3,7 @@
  *  - Boolean literal
  *  - Int literal
  *  - Float literal
+ * @author Facundo Molina
  */
 public abstract class Literal extends Expression {
 	

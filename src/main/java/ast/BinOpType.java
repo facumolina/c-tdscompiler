@@ -1,5 +1,6 @@
 /**
  * Enumerate for the type of the bynary operators.
+ * @author Facundo Molina
  */
 public enum BinOpType {
 	

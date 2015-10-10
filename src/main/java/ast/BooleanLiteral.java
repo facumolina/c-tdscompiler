@@ -1,9 +1,10 @@
 /**
  * This class represents a boolean literal: true or false
+ * @author Facundo Molina
  */
 public class BooleanLiteral extends Literal {
 	
-	private String rawValue;
+	private String rawValue; 	
 	private Boolean value;
 	
 	/*

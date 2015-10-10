@@ -3,6 +3,7 @@ import java.util.LinkedList;
 
 /**
  * This class represents the locations of the form ID[expr] or ID.ID ... .ID[expr] .
+ * @author Facundo Molina
  */
 public class VarArrayLocation extends Location {
 	

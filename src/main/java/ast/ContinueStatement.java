@@ -1,7 +1,7 @@
 /**
  * This class represents the continue statements: continue;
+ * @author Facundo Molina
  */
-
 public class ContinueStatement extends Statement {
 	
 	/**

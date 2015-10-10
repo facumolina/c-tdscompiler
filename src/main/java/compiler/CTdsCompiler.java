@@ -4,11 +4,12 @@ import java.util.LinkedList;
 
 /**
  * This class represents the compiler.
+ * @author Facundo Molina
  */
 public class CTdsCompiler {
 	
-	private static CTdsParser parser;	// Parser
-	private static LinkedList<String> errors; // Errors
+	private static CTdsParser parser;			// Parser
+	private static LinkedList<String> errors; 	// Errors
 	
 	/* 
  	 * Main method for run the compiler with an input file 
@@ -45,15 +46,6 @@ public class CTdsCompiler {
  			System.out.println("Compilation failed");
  		}
  		
- 	}
-
- 	/**
- 	 * Print program
- 	 */
- 	public static void printProgram(Program p) {
- 		//PrintVisitor<String> printVisitor = new PrintVisitor<String>();
- 		PrintVisitor printVisitor = new PrintVisitor();
- 		System.out.println(printVisitor.visit(p));
  	}
 
  	/**

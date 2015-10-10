@@ -1,5 +1,6 @@
 /**
  * This class represents the binary operations: expr op expr
+ * @author Facundo Molina
  */
 public class BinOpExpr extends Expression {
 	

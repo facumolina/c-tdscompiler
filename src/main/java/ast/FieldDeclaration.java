@@ -4,6 +4,7 @@ import java.util.List;
  * This class represents the Field declarations: 
  *   - type id ;
  *   - type id [ intliteral ] ;
+ * @author Facundo Molina
  */
 public class FieldDeclaration extends AST {
 
@@ -19,7 +20,6 @@ public class FieldDeclaration extends AST {
 		for (DeclarationIdentifier d : identifiersList) {
 			d.setType(t);
 		}
-		hasId = true;
 	}
 
 	/**

@@ -1,5 +1,6 @@
 /**
  * This class represents a visitor that check the amount of main methods.
+ * @author Facundo Molina
  */
 public class CheckMainVisitor implements ASTVisitor<Integer> {
 

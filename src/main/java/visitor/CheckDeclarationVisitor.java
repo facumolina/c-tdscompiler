@@ -4,6 +4,7 @@ import java.util.LinkedList;
 /**
  * This class implements a visitor that check the declaration names and
  * fill the information needed for type evaluation. 
+ * @author Facundo Molina
  */
 public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 
@@ -68,10 +69,7 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	public List<String> visit(FieldDeclaration decl) {
 		LinkedList<String> fieldErrors = new LinkedList<String>();
 		for (DeclarationIdentifier d : decl.getListIds()) {
-			if (table.addSymbol(d)) {
-				// The symbol was added successfully. Set the type for type check purposes.
-				//d.setType(decl.getType()); 
-			} else {
+			if (!table.addSymbol(d)) {
 				// The symbol already exists.
 				fieldErrors.add(d.getDeclarationErrorMessage());
 			}

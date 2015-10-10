@@ -1,6 +1,7 @@
 /**
  * This class represents the identifiable ast nodes, that is those that have
  * an id.
+ * @author Facundo Molina
  */
 public abstract class Identifiable extends AST {
 

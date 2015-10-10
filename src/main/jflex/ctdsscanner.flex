@@ -1,5 +1,6 @@
 /* 
- * This file defines a lexical analyzer for the C-Tds programming language. 
+ * This file defines a lexical analyzer for the C-Tds programming language.
+ * @author Facundo Molina 
  */
 import java_cup.runtime.*;
 %%

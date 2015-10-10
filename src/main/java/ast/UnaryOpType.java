@@ -1,5 +1,6 @@
 /**
  * Enumerate for the type of the unary operators.
+ * @author Facundo Molina
  */
 public enum UnaryOpType {
 	

@@ -1,5 +1,6 @@
 /**
  * Enumerate for the data types.
+ * @author Facundo Molina
  */
 public enum Type {
 	INT,
@@ -28,10 +29,16 @@ public enum Type {
 		return null;
 	}
 	
+	/**
+	 * Returns true if the current type is equal to the given type
+	 */
 	public boolean equals(Type t) {
 		return this.toString().equals(t.toString());
 	}
 
+	/**
+	 * Returns true if the type represents an array
+	 */
 	public boolean isArray() {
 		if (this == Type.INTARRAY) {
 			return true;

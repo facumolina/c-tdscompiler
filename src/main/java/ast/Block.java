@@ -3,6 +3,7 @@ import java.util.List;
 
 /**
  * This class represents a block.
+ * @author Facundo Molina
  */
 public class Block extends Statement {
 	
@@ -86,8 +87,6 @@ public class Block extends Statement {
 	    for (Statement statement: statements) {
 			blockString += "\t" + statement.toString() + "\n";
 		}
-		
-		//if (blockString.length() > 0) return blockString.substring(0, blockString.length() - 1); // remove last new line char
 		blockString += "}";
 		return blockString; 
 	}

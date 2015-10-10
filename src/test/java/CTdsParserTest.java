@@ -19,7 +19,9 @@ import org.junit.runner.Description;
 
 /* 
  * This class provides a set of tests for the CTdsParser 
+ * @author Facundo Molina
  */
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CTdsParserTest {
 

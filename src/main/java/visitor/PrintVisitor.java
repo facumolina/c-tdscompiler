@@ -1,5 +1,6 @@
 /**
  * This class represents a visitor that prints all the ast objects
+ * @author Facundo Molina
  */
 public class PrintVisitor implements ASTVisitor<String> {
 

@@ -17,7 +17,8 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 /* 
- * This class provides a set of tests for the CTds Scanner 
+ * This class provides a set of tests for the CTds Scanner
+ * @author Facundo Molina
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CTdsScannerTest {

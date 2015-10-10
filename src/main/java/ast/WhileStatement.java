@@ -1,5 +1,6 @@
 /**
  * This class represents the While statement: while expr block
+ * @author Facundo Molina
  */
 public class WhileStatement extends Statement {
 	

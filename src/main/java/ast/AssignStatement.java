@@ -1,7 +1,7 @@
 /**
  * This class represents the assignment statements: location assignment_op expr
+ * @author Facundo Molina
  */
-
 public class AssignStatement extends Statement {
 	
 	private Location location; 			// Location 

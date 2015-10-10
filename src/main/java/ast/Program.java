@@ -3,6 +3,7 @@ import java.util.LinkedList;
 
 /**
  * This class represents a program: class ID { .. } class ID' { .. } ..
+ * @author Facundo Molina
  */
 public class Program extends AST {
 	

@@ -1,7 +1,7 @@
 /**
  * This class represents the If statement: if condition ifblock else elseblock 
+ * @author Facundo Molina
  */
-
 public class IfStatement extends Statement {
 	
 	private Expression condition; 				// Condition expression

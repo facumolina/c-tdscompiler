@@ -4,6 +4,7 @@ import java.util.List;
  * This class represents the Method declarations:
  *   - type id () body ;
  *   - type id (a1,a2,..,an) body ;
+ * @author Facundo Molina
  */
 public class MethodDeclaration extends Identifiable {
 	
@@ -83,17 +84,15 @@ public class MethodDeclaration extends Identifiable {
 	 */
 	public boolean hasReturnStatement() {
 		if (!isExtern) {
-			/*for (Statement statement : block.getStatements()) {
-				if (statement instanceof ReturnStatement) {
-					return true;
-				}
-			}
-			return false;*/
 			return hasReturnStatementRecursive(block);
 		} 
 		return false;
 	}
 
+	/**
+	 * Returns true if the given block has a return statement in the first list
+	 * of statements 
+	 */
 	private boolean blockWithReturn(Block block) {
 		for (Statement statement : block.getStatements()) {
 			if (statement instanceof ReturnStatement) {
@@ -102,6 +101,7 @@ public class MethodDeclaration extends Identifiable {
 		}
 		return false;
 	}
+
 	/**
 	 * Returns true if the given Block has a return statement in the list of statements
 	 */

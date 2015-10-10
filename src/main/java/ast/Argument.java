@@ -1,5 +1,6 @@
 /**
  * This class represents the arguments of a method in the declaration
+ * @author Facundo Molina
  */
 public class Argument extends Identifiable {
 	
@@ -11,7 +12,6 @@ public class Argument extends Identifiable {
 	public Argument(Type t, String id,int line,int column) {
 		type = t;
 		this.id = id;
-		hasId = true;
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
 	}
@@ -58,11 +58,6 @@ public class Argument extends Identifiable {
 	@Override
 	public <T> T accept(ASTVisitor<T> v) {
 		return v.visit(this);
-	}
-
-	@Override
-	public boolean hasId() {
-		return true;
 	}
 
 }

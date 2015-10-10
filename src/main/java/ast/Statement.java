@@ -1,10 +1,11 @@
 /**
  * This class represents the Statements:
- *	- Assignment statement
- *  - Return statement
- *  - Conditional statement
- * 	- Loop statement
- *  - Method call statement
+ *	- Assignment statements
+ *  - Return statements
+ *  - Conditional statements
+ * 	- Loop statements
+ *  - Method call statements
+ * @author Facundo Molina
  */
 public abstract class Statement extends AST {
 	

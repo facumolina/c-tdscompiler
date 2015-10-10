@@ -1,7 +1,7 @@
 /**
  * This class represents the break statements: break;
+ * @author Facundo Molina
  */
-
 public class BreakStatement extends Statement {
 	
 	/**
