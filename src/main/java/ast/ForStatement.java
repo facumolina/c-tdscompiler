@@ -67,7 +67,7 @@ public class ForStatement extends Statement {
 	public String getConditionTypeError() {
 		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
 		String error = "Type Error: the condition expression type is " + condition.getType().toString()
-				+ " and must be boolean";
+				+ " and must be int";
 		return lineAndColumn + error;
 	}
 
