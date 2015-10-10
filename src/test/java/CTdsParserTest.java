@@ -25,7 +25,7 @@ public class CTdsParserTest {
 
 	@BeforeClass
     public static void initTest() {
-        System.out.println("----------------------------------- Testing CTdsParser ---------------------------------");;
+        System.out.println("----------------- Testing CTdsParser -----------------");
     	System.out.println();
     }
 

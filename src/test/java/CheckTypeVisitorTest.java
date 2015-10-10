@@ -26,7 +26,7 @@ public class CheckTypeVisitorTest {
 
 	@BeforeClass
     public static void initTest() {
-        System.out.println("----------------------------------- Testing CheckTypeVisitor ---------------------------------");
+        System.out.println("----------------- Testing CheckTypeVisitor -----------------");
     	System.out.println();
     }
 
@@ -135,20 +135,20 @@ public class CheckTypeVisitorTest {
 
 	/**
 	 * Test that an error is founded when in a for statement the condition 
-	 * type is not boolean
+	 * type is not int
 	 */
 	@Test
-	public void NotBooleanConditionForStatementTest() throws IOException {
-		assertEquals(genericTest("NotBooleanConditionForStmt.ctds"),true);		
+	public void NotIntConditionForStatementTest() throws IOException {
+		assertEquals(genericTest("NotIntConditionForStmt.ctds"),true);		
 	}
 
 	/**
 	 * Test that there are no errors when in a for statement the condition 
-	 * type is boolean
+	 * type is int
 	 */
 	@Test
-	public void BooleanConditionForStatementTest() throws IOException {
-		assertEquals(genericTest("BooleanConditionForStmt.ctds"),false);		
+	public void IntConditionForStatementTest() throws IOException {
+		assertEquals(genericTest("IntConditionForStmt.ctds"),false);		
 	}
 
 	/**

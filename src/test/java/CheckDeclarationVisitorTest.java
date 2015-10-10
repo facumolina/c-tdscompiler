@@ -26,7 +26,7 @@ public class CheckDeclarationVisitorTest {
 
 	@BeforeClass
     public static void initTest() {
-        System.out.println("----------------------------------- Testing CheckDeclarationVisitor ---------------------------------");
+        System.out.println("----------------- Testing CheckDeclarationVisitor -----------------");
     	System.out.println();
     }
 

@@ -24,7 +24,7 @@ public class CTdsScannerTest {
 
 	@BeforeClass
     public static void initTest() {
-        System.out.println("----------------------------------- Testing CTdsScanner ---------------------------------");;
+        System.out.println("----------------- Testing CTdsScanner -----------------");
     	System.out.println();
     }
 
