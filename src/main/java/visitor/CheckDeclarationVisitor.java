@@ -59,7 +59,6 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 			// The symbol already exists
 			classErrors.add(decl.getDeclarationErrorMessage());
 		}
-
 		return classErrors;
 	}
 
@@ -90,18 +89,10 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		if (table.addSymbol(decl)) {
 			// The symbol was added successfully. 
 			if (!decl.isExtern()) {
-				if (!decl.getType().equals(Type.VOID)) {
-					// Method type is not void
-					if (!decl.hasReturnStatement()) {
+				if (!decl.hasReturnStatement()) {
 						// The method does not have a return statement
 						methodErrors.add(decl.getMissingReturnStatementError());
-					} 
-				} else {
-					// Method type is void
-					if (decl.hasReturnStatement()) {
-						methodErrors.add(decl.getIncorrectReturnStatementError());				
-					}
-				}
+				} 
 				table.incrementLevel();
 				for (Argument arg : decl.getArguments()) {
 					methodErrors.addAll(arg.accept(this));
@@ -109,7 +100,6 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 				methodErrors.addAll(decl.getBlock().accept(this));
 				table.decrementLevel();
 			}
-			
 		} else {
 			// The symbol already exists
 			methodErrors.add(decl.getDeclarationErrorMessage());
@@ -282,7 +272,7 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		LinkedList<String> varLocationError = new LinkedList<String>();
 		if (loc.isSimpleLocation()) {
 			// The location is of the form ID. So the ID must be declared 
-			// as field in the current method or as field declaration of the 
+			// int the current or previous blocks, or as field declaration of the 
 			// current class.
 			DeclarationIdentifier decl = (DeclarationIdentifier)searchDeclaration(loc.getId(),true,"",true);
 			boolean error = false;
@@ -382,11 +372,22 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		if (isSimple) {
 			// The declaration searched only has one id.
 			if (isField) {
-				// Search the id in the method field declarations or in the class field declarations
-				decl = table.searchSymbol(id,method_field_level);
-				if (decl == null) {
-					decl = table.searchSymbol(id,field_level);
+				if(table.getLevel()>method_field_level) {
+					// There are some blocks
+					int levelToSearch = table.getLevel();
+					while ((decl==null) && levelToSearch>method_field_level) {
+						decl = table.searchSymbol(id,levelToSearch);
+						levelToSearch--;
+					}
 				}
+				if (decl==null) {
+					// Search the id in the method field declarations or in the class field declarations
+					decl = table.searchSymbol(id,method_field_level);
+					if (decl == null) {
+						decl = table.searchSymbol(id,field_level);
+					}
+				}
+				
 			} else {
 				// Search the method
 				decl = table.searchSymbol(id,method_level);
@@ -449,6 +450,7 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(Block block) {
 		LinkedList<String> blockErrors = new LinkedList<String>();
+		table.incrementLevel();
 		for (FieldDeclaration fieldDeclaration : block.getFieldDeclarations()) {
 			// Accept each field declaration
 			blockErrors.addAll(fieldDeclaration.accept(this));
@@ -457,6 +459,7 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 			// Accept each statement
 			blockErrors.addAll(statement.accept(this));
 		}
+		table.decrementLevel();
 		return blockErrors;
 	}
 
