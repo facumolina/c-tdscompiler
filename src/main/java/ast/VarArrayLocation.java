@@ -104,6 +104,16 @@ public class VarArrayLocation extends Location {
 		return lineAndColumn + error;
 	}
 
+	/**
+	 * Get incorrect index (expr) type error message
+	 */
+	public String getTypeIndexError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Type Error: the index expression has type " + expr.getType().toString()
+				+  ", and must be of type int";
+		return lineAndColumn + error;
+	}
+
 	@Override
 	public String toString() {
 		String locationString = id;

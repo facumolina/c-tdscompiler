@@ -100,10 +100,11 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	public List<String> visit(AssignStatement stmt) {
 		LinkedList<String> assignError = new LinkedList<String>();
 		Location location = stmt.getLocation();
+		assignError.addAll(location.accept(this));
 		Expression expression = stmt.getExpression();
 		assignError.addAll(expression.accept(this));
 		if (assignError.size()==0) {
-			// The expression is correct
+			// The expression and the location are correct
 			if (!location.getDeclaration().getType().equals(expression.getType())) {
 				// The type is not the same, so add the error.
 				assignError.add(location.getTypeErrorMessage(expression));
@@ -348,10 +349,20 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit var array location
+	 * Visit var array location accepting the index expression
 	 */
 	public List<String> visit(VarArrayLocation loc) {
-		return new LinkedList<String>();
+		LinkedList<String> varArrayLocErrors = new LinkedList<String>();
+		Expression expression = loc.getExpression();
+		varArrayLocErrors.addAll(expression.accept(this));
+		if (varArrayLocErrors.size()==0) {
+			// There are no errors in the expression
+			if (!loc.getExpression().getType().equals(Type.INT)) {
+				// The expression representing the index is not int
+				varArrayLocErrors.add(loc.getTypeIndexError());
+			}
+		}
+		return varArrayLocErrors;
 	}
 
 	/**

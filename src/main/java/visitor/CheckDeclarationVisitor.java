@@ -326,7 +326,8 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 			if (decl != null) {
 				// The field was founded. So add it to the location if it is an array declaration
 				if (decl.isArrayDeclarationId()) {
-					loc.setDeclaration(decl);	
+					loc.setDeclaration(decl);
+					varArrayLocationError.addAll(loc.getExpression().accept(this));	
 				} else {
 					error = true;
 				}
@@ -346,7 +347,8 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 			if (decl!=null) {
 				// The field declaration was founded. So add it to the location if is an array declaration
 				if (decl.isArrayDeclarationId()) {
-					loc.setDeclaration(decl);	
+					loc.setDeclaration(decl);
+					varArrayLocationError.addAll(loc.getExpression().accept(this));	
 				} else {
 					error = true;
 				}
