@@ -463,4 +463,11 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		return blockErrors;
 	}
 
+	/**
+	 * Visit a semicolon statement
+	 */
+	public List<String> visit(SemicolonStatement s) {
+		return new LinkedList<String>();
+	}
+
 }

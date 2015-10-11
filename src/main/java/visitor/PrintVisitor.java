@@ -113,4 +113,11 @@ public class PrintVisitor implements ASTVisitor<String> {
 		return (String)"";
 	}
 
+	/**
+	 * Visit a semicolon statement
+	 */
+	public String visit(SemicolonStatement s) {
+		return (String)"";
+	}
+	
 }

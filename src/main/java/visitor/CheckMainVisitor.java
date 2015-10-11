@@ -198,4 +198,11 @@ public class CheckMainVisitor implements ASTVisitor<Integer> {
 		return 0;
 	}
 
+	/**
+	 * Visit a semicolon statement
+	 */
+	public Integer visit(SemicolonStatement s) {
+		return 0;
+	}
+
 }
