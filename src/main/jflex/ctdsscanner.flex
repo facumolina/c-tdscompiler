@@ -69,10 +69,10 @@ import java_cup.runtime.*;
 "void"                                 { return symbol(CTdsSymbol.VOID,yytext()); }
 
 /* Literals */
-{int_literal}                          { return symbol(CTdsSymbol.INT_LITERAL, new IntLiteral(yytext()));}
-{float_literal}                        { return symbol(CTdsSymbol.FLOAT_LITERAL, new FloatLiteral(yytext()));}
-"true"                                 { return symbol(CTdsSymbol.TRUE, new BooleanLiteral(true)); }
-"false"                                { return symbol(CTdsSymbol.FALSE, new BooleanLiteral(false));}
+{int_literal}                          { return symbol(CTdsSymbol.INT_LITERAL, new IntLiteral(yytext(),yyline+1,yycolumn+1));}
+{float_literal}                        { return symbol(CTdsSymbol.FLOAT_LITERAL, new FloatLiteral(yytext(),yyline+1,yycolumn+1));}
+"true"                                 { return symbol(CTdsSymbol.TRUE, new BooleanLiteral(true,yyline+1,yycolumn+1)); }
+"false"                                { return symbol(CTdsSymbol.FALSE, new BooleanLiteral(false,yyline+1,yycolumn+1));}
 
 /* Operators */
 "+"                                    { return symbol(CTdsSymbol.PLUS,BinOpType.PLUS); }

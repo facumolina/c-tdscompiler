@@ -723,7 +723,7 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 48: break;
           case 2: 
-            { return symbol(CTdsSymbol.INT_LITERAL, new IntLiteral(yytext()));
+            { return symbol(CTdsSymbol.INT_LITERAL, new IntLiteral(yytext(),yyline+1,yycolumn+1));
             }
           case 49: break;
           case 3: 
@@ -847,7 +847,7 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 79: break;
           case 33: 
-            { return symbol(CTdsSymbol.FLOAT_LITERAL, new FloatLiteral(yytext()));
+            { return symbol(CTdsSymbol.FLOAT_LITERAL, new FloatLiteral(yytext(),yyline+1,yycolumn+1));
             }
           case 80: break;
           case 34: 
@@ -859,7 +859,7 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 82: break;
           case 36: 
-            { return symbol(CTdsSymbol.TRUE, new BooleanLiteral(true));
+            { return symbol(CTdsSymbol.TRUE, new BooleanLiteral(true,yyline+1,yycolumn+1));
             }
           case 83: break;
           case 37: 
@@ -879,7 +879,7 @@ public class CTdsScanner implements java_cup.runtime.Scanner {
             }
           case 87: break;
           case 41: 
-            { return symbol(CTdsSymbol.FALSE, new BooleanLiteral(false));
+            { return symbol(CTdsSymbol.FALSE, new BooleanLiteral(false,yyline+1,yycolumn+1));
             }
           case 88: break;
           case 42: 
