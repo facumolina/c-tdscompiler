@@ -57,7 +57,7 @@ public class UnaryOpExpr extends Expression {
 	 */
 	public String getIncompatibleTypeOperatorError() {
 		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
-		String error = "Type error: incomptabile operator " + operator.toString() 
+		String error = "Type error: incompatible operator " + operator.toString() 
 				+ " with type " + operand.getType().toString();
 		return lineAndColumn + error ;
 	}

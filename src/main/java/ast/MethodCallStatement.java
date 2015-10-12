@@ -10,8 +10,10 @@ public class MethodCallStatement extends Statement {
 	/**
 	 * Constructor
 	 */
-	public MethodCallStatement(MethodCall m) {
+	public MethodCallStatement(MethodCall m, int line, int column) {
 		methodCall = m;
+		setLineNumber(line);
+		setColumnNumber(column);
 	}
 
 	/**

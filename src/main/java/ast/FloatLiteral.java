@@ -11,9 +11,11 @@ public class FloatLiteral extends Literal {
 	 * Constructor for float literal that takes a string as an input
 	 * @param: String float
 	 */
-	public FloatLiteral(String val){
+	public FloatLiteral(String val,int line, int column){
 		rawValue = val; 
 		value = Float.parseFloat(val);
+		setLineNumber(line);
+		setColumnNumber(column);
 	}
 
 	@Override

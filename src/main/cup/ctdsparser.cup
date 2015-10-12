@@ -188,7 +188,7 @@ statement_list ::=  statement_list:l statement:s  	{: l.add(0,s); RESULT = l; :}
 statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatement(l,AssignOpType.ASSIGN,e);:}
 	| 	location:l PLUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.INCREMENT,e);:}			
 	|	location:l MINUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.DECREMENT,e);:}
-	|	method_call:m SEMI_COLON 							{: RESULT = new MethodCallStatement(m); :}
+	|	method_call:m SEMI_COLON 							{: RESULT = new MethodCallStatement(m,mleft+1,mright+1); :}
 	|	IF L_PAREN expr:cond R_PAREN block:b 				{: RESULT = new IfStatement(cond,b,condleft+1,condright+1); :}
 	|	IF L_PAREN expr:cond R_PAREN block:ib ELSE block:eb	{: RESULT = new IfStatement(cond,ib,eb,condleft+1,condright+1);:}
 	|	FOR ID:id EQ expr:cond COMMA expr:e block:b     	{: RESULT = new ForStatement(id,cond,e,b,idleft+1,idright+1);:}

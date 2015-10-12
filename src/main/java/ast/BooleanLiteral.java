@@ -10,9 +10,11 @@ public class BooleanLiteral extends Literal {
 	/*
 	 * Constructor with a boolean value
 	 */
-	public BooleanLiteral(Boolean b){
+	public BooleanLiteral(Boolean b, int line, int column){
 		rawValue = b.toString(); 
 		value = b;
+		setLineNumber(line);
+		setColumnNumber(column);
 	}
 
 	@Override

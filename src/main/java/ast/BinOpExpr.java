@@ -84,7 +84,7 @@ public class BinOpExpr extends Expression {
 	 */
 	public String getDifferentTypesErrorMessage() {
 		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
-		String error = "Type error: incomptabile operands types. The left operands " 
+		String error = "Type error: incompatible operands types. The left operands " 
 			+ "type is " + lOperand.getType().toString() + ", but the right operand " 
 			+ "type is " + rOperand.getType().toString();
 		return lineAndColumn + error ;	
