@@ -5,7 +5,8 @@
 public class Argument extends Identifiable {
 	
 	private Type type; 					// Argument type
-
+	private DeclarationIdentifier decl; // Declaration associated in the symbols table
+	
 	/**
 	 * Contructor with a given type and id
 	 */
@@ -28,6 +29,20 @@ public class Argument extends Identifiable {
 	 */
 	public void setType(Type t) {
 		type = t;
+	}
+
+	/**
+	* Get declaration identifier
+	*/
+	public DeclarationIdentifier getDeclaration() {
+		return decl;
+	}
+
+	/**
+	 * Set declaration identifier
+	 */
+	public void setDeclaration(DeclarationIdentifier decl) {
+		this.decl = decl;
 	}
 
 	/**

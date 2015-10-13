@@ -12,7 +12,7 @@ public class MethodDeclaration extends Identifiable {
 	private Block block;						// Block
 	private boolean isExtern;					// IsExtern
 	private Type type;							// Return type
-
+	private Literal value;						// Return value
 	/**
 	 * Constructor
 	 */
@@ -70,6 +70,20 @@ public class MethodDeclaration extends Identifiable {
 	 */
 	public void setBlock(Block b) {
 		block = b;
+	}
+
+	/**
+	 * Get the value
+	 */
+	public Literal getValue() {
+		return value;
+	}
+
+	/**
+	 * Set the value
+	 */
+	public void setValue(Literal value) {
+		this.value = value;
 	}
 
 	/**

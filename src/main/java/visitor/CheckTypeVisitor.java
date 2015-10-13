@@ -128,6 +128,7 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 	public List<String> visit(ReturnStatement stmt) {
 		LinkedList<String> returnErrors = new LinkedList<String>();
 		MethodDeclaration currentMethod = getCurrentMethod();
+		stmt.setMethodDeclaration(currentMethod);
 		if (stmt.hasExpression()) {
 			if (!currentMethod.getType().equals(Type.VOID)) {
 				// The method tpye is not void

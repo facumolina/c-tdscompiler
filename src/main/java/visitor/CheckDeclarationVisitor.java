@@ -112,6 +112,7 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		LinkedList<String> argErrors = new LinkedList<String>();
 		DeclarationIdentifier argDeclaration = new DeclarationIdentifier(arg.getId(),arg.getLineNumber(),arg.getColumnNumber());
 		argDeclaration.setType(arg.getType());
+		arg.setDeclaration(argDeclaration);
 		if (!table.addSymbol(argDeclaration)) {
 			// Already exists an argument with the same id
 			argErrors.add(arg.getDeclarationErrorMessage());

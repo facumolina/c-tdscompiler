@@ -7,19 +7,12 @@ import java.util.LinkedList;
  */
 public class InterpreterVisitor implements ASTVisitor<List<String>> {
 
-	private SymbolsTable table; 					// Symbols table
 	private LinkedList<String> errorsList;			// Errors
-
-	private static final int class_level = 0;
-	private static final int field_level = 1;
-	private static final int method_level = 2;
-	private static final int method_field_level = 3;
 
 	/**
 	 * Constructor
 	 */
 	public InterpreterVisitor() {
-		table = new SymbolsTable();
 		errorsList = new LinkedList<String>();
 	}
 
@@ -34,20 +27,13 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit a class declaration accepting only the main method, if its founded.
+	 * Visit a class declaration
 	 */
 	public List<String> visit(ClassDeclaration decl) {
 	 	LinkedList<String> classErrors = new LinkedList<String>();
-	 	/*table.incrementLevel();
-		for (FieldDeclaration fieldDeclaration : decl.getFieldDeclarations()) {
-			fieldDeclaration.accept(this);
-		}
-		table.incrementLevel();*/
 		for (MethodDeclaration methodDeclaration : decl.getMethodDeclarations()) {
 			classErrors.addAll(methodDeclaration.accept(this));
 		}
-		/*table.decrementLevel();
-		table.decrementLevel();*/
 		return classErrors;
 	}
 
@@ -55,9 +41,6 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	 * Visit a field declaration 
 	 */
 	public List<String> visit(FieldDeclaration decl) {
-		/*for (DeclarationIdentifier d : decl.getListIds()) {
-			table.addSymbol(d);
-		}*/
 		return new LinkedList<String>();
 	}
 
@@ -67,9 +50,7 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	public List<String> visit(MethodDeclaration decl) {
 		LinkedList<String> methodErrors = new LinkedList<String>();
 		if (decl.getId().equals("main")) {
-			//table.incrementLevel();
 		 	methodErrors.addAll(decl.getBlock().accept(this));
-			//table.decrementLevel();
 		}
 		return methodErrors;
  	}
@@ -113,23 +94,23 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	 * Visit a method call statement
 	 */
 	public List<String> visit(MethodCallStatement stmt) {
-		return new LinkedList<String>();
+		return stmt.getMethodCall().accept(this);
 	}
 
 	/**
-	 * Visit a return statement 
+	 * Visit a return statement accepting the return expression and
+	 * setting the value to the associated method 
 	 */
 	public List<String> visit(ReturnStatement stmt) {
-		return new LinkedList<String>();
-	}
-
-	/**
-	 * Get the current method being analized. It is assumed that the current method
-	 * allways stays at the end of the list that contains the method declarations
-	 */
-	private MethodDeclaration getCurrentMethod() {
-		int amountOfMethods = table.getLevelSymbols(method_level).size();
-		return (MethodDeclaration)table.getLevelSymbols(method_level).get(amountOfMethods-1);
+		LinkedList<String> returnErrors = new LinkedList<String>();
+		if (stmt.hasExpression()) {
+			returnErrors.addAll(stmt.getExpression().accept(this));
+			if (returnErrors.size()==0) {
+				// There are no errors in the return expression
+				stmt.getMethodDeclaration().setValue(stmt.getExpression().getValue());
+			}
+		}
+		return returnErrors;
 	}
 
 	/**
@@ -369,10 +350,34 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit method call 
+	 * Visit method call calculating the values for each arguments
+	 * and accepting of the declaration
 	 */
 	public List<String> visit(MethodCall call) {
-		return new LinkedList<String>();
+		LinkedList<String> methodCallErrors = new LinkedList<String>();
+		int i=0;
+		while (i < call.getArguments().size()) {
+			// Iterate over all the arguments resolving the values
+			Expression expression = call.getArguments().get(i);
+			methodCallErrors.addAll(expression.accept(this));
+			if (methodCallErrors.size()==0) {
+				// There are no errors in the expression
+				Argument arg = call.getDeclaration().getArguments().get(i);
+				arg.getDeclaration().setValue(expression.getValue());
+			}
+			i++;
+		}
+		if (methodCallErrors.size()==0) {
+			// There are no errors in arguments. Accept the block of the method declaration
+			methodCallErrors.addAll(call.getDeclaration().getBlock().accept(this));
+		}
+		if (methodCallErrors.size()==0) {
+			// There are no errors in method execution
+			if (call.getDeclaration().hasReturnStatement()) {
+				call.setValue(call.getDeclaration().getValue());				
+			}
+		}
+		return methodCallErrors;
 	}
 
 	/**
@@ -380,15 +385,10 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(Block block) {
 		LinkedList<String> blockErrors = new LinkedList<String>();
-		/*table.incrementLevel();
-		for (FieldDeclaration fieldDeclaration : block.getFieldDeclarations()) {
-			fieldDeclaration.accept(this);
-		}*/
 		for (Statement statement : block.getStatements()) {
 			System.out.println("Stmt: " + statement.toString());
 			blockErrors.addAll(statement.accept(this));
 		}
-		/*table.decrementLevel();*/
 		return blockErrors;
 	}
 
@@ -399,59 +399,4 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 		return new LinkedList<String>();
 	}
 	
-	/**
-	 * Search a declaration in the symbols table for a given location type (simple
-	 * or extended). Return null if it not exists.
-	 */
-	private Identifiable searchDeclaration(String id,boolean isSimple,String secondId, boolean isField) {
-		Identifiable decl = null;
-		if (isSimple) {
-			// The declaration searched only has one id.
-			if (isField) {
-				if(table.getLevel()>method_field_level) {
-					// There are some blocks
-					int levelToSearch = table.getLevel();
-					while ((decl==null) && levelToSearch>method_field_level) {
-						decl = table.searchSymbol(id,levelToSearch);
-						levelToSearch--;
-					}
-				}
-				if (decl==null) {
-					// Search the id in the method field declarations or in the class field declarations
-					decl = table.searchSymbol(id,method_field_level);
-					if (decl == null) {
-						decl = table.searchSymbol(id,field_level);
-					}
-				}
-				
-			} else {
-				// Search the method
-				decl = table.searchSymbol(id,method_level);
-			}
-		} else {
-			// The declaration searched has more than one id.
-			ClassDeclaration classDecl = (ClassDeclaration)table.searchSymbol(id,class_level);
-			if (classDecl != null) {
-				if (isField) {
-					// Is a field
-					for (FieldDeclaration field : classDecl.getFieldDeclarations() ) {
-						for (DeclarationIdentifier declaration : field.getListIds()) {
-							if (declaration.getId().equals(secondId)) {
-								decl = declaration;
-								break;
-							}
-						}	
-					}
-				} else {
-					// Is a method
-					for (MethodDeclaration method : classDecl.getMethodDeclarations() ) {
-						if (method.getId().equals(secondId)) {
-							decl = method;
-						}
-					}
-				}
-			}	
-		}
-		return decl;
-	}
 }

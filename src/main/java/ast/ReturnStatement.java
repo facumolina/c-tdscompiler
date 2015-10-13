@@ -6,8 +6,9 @@
  */
 public class ReturnStatement extends Statement {
 	
-	private Expression expression; 	// Return expression
-	
+	private Expression expression; 		// Return expression
+	private MethodDeclaration method;	// Assocciated method
+
 	/**
 	 * Constructor
 	 */
@@ -48,6 +49,20 @@ public class ReturnStatement extends Statement {
 		String error = "Type error: the return has type " + expression.getType().toString() 
 				+ ", but the declared type in the method is " + m.getType().toString();
 		return lineAndColumn + error ;
+	}
+
+	/**
+	 * Get method declaration
+	 */
+	public MethodDeclaration getMethodDeclaration() {
+		return method;
+	}
+
+	/**
+	 * Set method declaration
+  	 */
+	public void setMethodDeclaration(MethodDeclaration decl) {
+		this.method = decl;
 	}
 
 	/**
