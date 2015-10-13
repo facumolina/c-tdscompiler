@@ -5,7 +5,8 @@
 public abstract class Expression extends AST {
 		 			
 	protected Type type;					// Expression type
-
+	protected Literal value;				// Expression value
+	
 	/**
 	 * Get the type
 	 */
@@ -18,6 +19,20 @@ public abstract class Expression extends AST {
 	 */
 	public void setType(Type t) {
 		this.type = t;
+	}
+
+	/**
+	 * Get the value
+	 */
+	public Literal getValue() {
+		return value;
+	}
+
+	/**
+	 * Set the value
+	 */
+	public void setValue(Literal value) {
+		this.value = value;
 	}
 
 }

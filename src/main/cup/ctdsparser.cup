@@ -153,7 +153,7 @@ decl_list ::= decl:d 								{: RESULT = new LinkedList<DeclarationIdentifier>(A
 	;
 
 decl ::= ID:id 										{: RESULT = new DeclarationIdentifier(id,idleft+1,idright+1); :}
-	| ID:id L_BRACKET INT_LITERAL:n R_BRACKET 		{: RESULT = new DeclarationIdentifier(id,n.getValue(),idleft+1,idright+1); :}
+	| ID:id L_BRACKET INT_LITERAL:n R_BRACKET 		{: RESULT = new DeclarationIdentifier(id,n.getIntegerValue(),idleft+1,idright+1); :}
 	;
 
 /* Methods declarations */
@@ -181,7 +181,7 @@ block ::= L_BRACE field_decl_list:fl statement_list:sl R_BRACE  {: RESULT = new 
 	;
 
 /* Statements */
-statement_list ::=  statement_list:l statement:s  	{: l.add(0,s); RESULT = l; :}
+statement_list ::=  statement_list:l statement:s  	{: l.add(s); RESULT = l; :}
 	|	statement:s 								{: RESULT = new LinkedList<Statement>(Arrays.asList(s));:}
 	;
 

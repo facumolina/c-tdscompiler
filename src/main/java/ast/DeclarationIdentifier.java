@@ -1,12 +1,15 @@
+import java.util.ArrayList;
+
 /**
  * This class represents the Declaration identifiers id or id[int_literal]
  * @author Facundo Molina
  */
 public class DeclarationIdentifier extends Identifiable {
 	
-	private Integer capacity; 		// Capacity used if the declaration identifier is the identifier of an array
-	private Type type;				// Type stored 
-
+	private Integer capacity; 					// Capacity used if the declaration identifier is the identifier of an array
+	private Type type;							// Type stored 
+	private ArrayList<Literal> listOfValues;	// List of values. 
+	
 	/**
 	 * Constructor for declarations identifiers: id
 	 */
@@ -15,6 +18,7 @@ public class DeclarationIdentifier extends Identifiable {
 		capacity = null;
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
+		listOfValues = new ArrayList<Literal>(1);
 	}
 
 	/**
@@ -25,6 +29,7 @@ public class DeclarationIdentifier extends Identifiable {
 		capacity = n;
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
+		listOfValues = new ArrayList<Literal>(n);
 	}
 
 	/**
@@ -69,6 +74,24 @@ public class DeclarationIdentifier extends Identifiable {
 		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
 		String error = "Declaration Error: already exists a field with id " + id;
 		return lineAndColumn + error;
+	}
+
+	/**
+	 * Get value for declaration identifier representing: id
+	 */
+	public Literal getValue() {
+		if (listOfValues.size()>0) {
+			return listOfValues.get(0);	
+		}
+		return null;
+	}
+
+	/**
+	 * Set value for declaration identifier representing: id
+	 */
+	public void setValue(Literal value) {
+		System.out.println("adding value " + value.toString());
+		listOfValues.add(0,value);
 	}
 
 	@Override

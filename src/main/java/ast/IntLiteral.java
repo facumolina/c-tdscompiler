@@ -5,7 +5,7 @@
 public class IntLiteral extends Literal {
 	
 	private String rawValue;
-	private Integer value;
+	private Integer intValue;
 	
 	/*
 	 * Constructor for int literal that takes a string as an input
@@ -13,9 +13,19 @@ public class IntLiteral extends Literal {
 	 */
 	public IntLiteral(String val,int line,int column){
 		rawValue = val; 
-		value = Integer.parseInt(val);
+		intValue = Integer.parseInt(val);
 		setLineNumber(line);
 		setColumnNumber(column);
+		value = this;
+	}
+
+	/*
+	 * Constructor for int literal that takes a integer
+	 */
+	public IntLiteral(Integer n){
+		rawValue = n.toString(); 
+		intValue = n;
+		value = this;
 	}
 
 	@Override
@@ -35,20 +45,22 @@ public class IntLiteral extends Literal {
 	 */
 	public void setStringValue(String stringValue) {
 		this.rawValue = stringValue;
+		intValue = Integer.parseInt(stringValue);
 	}
 
 	/**
 	 * Get the value
 	 */
-	public Integer getValue() {
-		return value;
+	public Integer getIntegerValue() {
+		return intValue;
 	}
 
 	/**
 	 * Set the value
 	 */
-	public void setValue(int value) {
-		this.value = value;
+	public void setIntegerValue(Integer value) {
+		this.intValue = value;
+		this.rawValue = value.toString();
 	}
 
 	@Override

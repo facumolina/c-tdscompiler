@@ -34,6 +34,10 @@ public class CTdsCompiler {
  				checkTypes(program); 			
  			}
  			
+ 			if (errors.size()==0) {
+ 				// Only interpret the program if there are no previous errors.
+ 				interpret(program);
+ 			}
  			
  			if (errors.size()==0) {
  				System.out.println("Successful compilation");
@@ -43,6 +47,7 @@ public class CTdsCompiler {
  				}
  			}
  		} catch (Exception e) {
+ 			e.printStackTrace();
  			System.out.println("Compilation failed");
  		}
  		
@@ -75,4 +80,12 @@ public class CTdsCompiler {
  		errors.addAll(checkTypeVisitor.visit(p));
  	}
  	
+ 	/**
+ 	 * Interpret the program
+ 	 */
+ 	public static void interpret(Program p) {
+ 		InterpreterVisitor interpreterVisitor = new InterpreterVisitor();
+ 		errors.addAll(interpreterVisitor.visit(p));
+ 	}
+
 }

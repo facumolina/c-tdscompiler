@@ -35,7 +35,7 @@ public abstract class Location extends Expression {
 		this.decl = decl;
 		setType(decl.getType());
 	}
-	
+
 	/**
 	 * Get type error message
 	 */

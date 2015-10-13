@@ -5,17 +5,26 @@
 public class FloatLiteral extends Literal {
 
 	private String rawValue;
-	private Float value;
+	private Float floatValue;
 	
 	/*
 	 * Constructor for float literal that takes a string as an input
-	 * @param: String float
 	 */
 	public FloatLiteral(String val,int line, int column){
 		rawValue = val; 
-		value = Float.parseFloat(val);
+		floatValue = Float.parseFloat(val);
 		setLineNumber(line);
 		setColumnNumber(column);
+		value = this;
+	}
+
+	/**
+	 * Constructor with a given float 
+	 */
+	public FloatLiteral(Float f) {
+		floatValue = f;
+		rawValue = f.toString();
+		value = this;
 	}
 
 	@Override
@@ -35,20 +44,22 @@ public class FloatLiteral extends Literal {
 	 */
 	public void setStringValue(String stringValue) {
 		this.rawValue = stringValue;
+		floatValue = Float.parseFloat(stringValue);
 	}
 
 	/**
 	 * Get the value
 	 */
-	public Float getValue() {
-		return value;
+	public Float getFloatValue() {
+		return floatValue;
 	}
 
 	/**
 	 * Set the value
 	 */
-	public void setValue(float value) {
-		this.value = value;
+	public void setFloatValue(Float value) {
+		this.floatValue = value;
+		this.rawValue = value.toString();
 	}
 
 	@Override

@@ -68,6 +68,11 @@ public class VarLocation extends Location {
 		return listIds.size()==0;
 	}
 
+	@Override
+	public Literal getValue() {
+		return decl.getValue();
+	}
+	
 	/**
 	 * Get no declaration error message
 	 */
@@ -87,6 +92,15 @@ public class VarLocation extends Location {
 		return lineAndColumn + error;
 	}
 
+	/**
+	 * Get not initialized varable error
+	 */
+	public String getInitializationError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Error: The location " + id + " has not been initialized";
+		return lineAndColumn + error;
+	}
+	
 	@Override
 	public String toString() {
 		String locationString = id;

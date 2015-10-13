@@ -5,18 +5,28 @@
 public class BooleanLiteral extends Literal {
 	
 	private String rawValue; 	
-	private Boolean value;
+	private Boolean booleanValue;
 	
 	/*
 	 * Constructor with a boolean value
 	 */
 	public BooleanLiteral(Boolean b, int line, int column){
 		rawValue = b.toString(); 
-		value = b;
+		booleanValue = b;
 		setLineNumber(line);
 		setColumnNumber(column);
+		value = this;
 	}
 
+	/**
+	 * Default constructor
+	 */
+	public BooleanLiteral() {
+		booleanValue = false;
+		rawValue = booleanValue.toString();
+		value = this;
+	}
+	
 	@Override
 	public Type getType() {
 		return Type.BOOLEAN;
@@ -34,20 +44,22 @@ public class BooleanLiteral extends Literal {
 	 */
 	public void setStringValue(String stringValue) {
 		rawValue = stringValue;
+		booleanValue = stringValue.equals("true")?true:false;
 	}
 
 	/**
 	 * Get the value
 	 */
-	public Boolean getValue() {
-		return value;
+	public Boolean getBooleanValue() {
+		return booleanValue;
 	}
 
 	/**
 	 * Set the value
 	 */ 
-	public void setValue(boolean value) {
-		this.value = value;
+	public void setBooleanValue(Boolean value) {
+		this.booleanValue = value;
+		rawValue = value.toString();
 	}
 
 	@Override
