@@ -114,6 +114,17 @@ public class VarArrayLocation extends Location {
 		return lineAndColumn + error;
 	}
 
+	/**
+	 * Get invalid index error message
+	 */
+	public String getInvalidIndexError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		IntLiteral value = (IntLiteral)expr.getValue();
+		String error = "Error: the index expression value is " + value.getIntegerValue()
+			+ " and must be greater or equal than 0 and less than " + decl.getCapacity();
+		return lineAndColumn + error;
+	}
+
 	@Override
 	public String toString() {
 		String locationString = id;

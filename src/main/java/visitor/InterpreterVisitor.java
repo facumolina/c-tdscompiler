@@ -27,7 +27,7 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit a class declaration
+	 * Visit a class declaration accepting each method
 	 */
 	public List<String> visit(ClassDeclaration decl) {
 	 	LinkedList<String> classErrors = new LinkedList<String>();
@@ -45,7 +45,8 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit a method declaration 
+	 * Visit a method declaration, accepting the block only if the method
+	 * is the main method 
 	 */
 	public List<String> visit(MethodDeclaration decl) {
 		LinkedList<String> methodErrors = new LinkedList<String>();
@@ -70,7 +71,7 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	}
  	
 	/**
-	 * Visit an assign statement 
+	 * Visit an assign statement accepting the location and the expression
 	 */
 	public List<String> visit(AssignStatement stmt) {
 		LinkedList<String> assignErrors = new LinkedList<String>();
@@ -81,6 +82,11 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 			// The expression is correct
 			if (location.getDeclaration().isArrayDeclarationId()) {
 				// The location is an array
+				assignErrors.addAll(location.accept(this));
+				if (assignErrors.size()==0) {
+					// There are no errors in the array location
+					location.getDeclaration().setValue(expression.getValue());
+				}
 			} else {
 				// The location is a var
 				location.getDeclaration().setValue(expression.getValue());
@@ -331,22 +337,30 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(VarLocation loc) {
 		LinkedList<String> varLocationError = new LinkedList<String>();
-		if (loc.isSimpleLocation()) {
-			// The location is of the form ID. 
-			if (loc.getDeclaration().getValue()==null) {
-				varLocationError.add(loc.getInitializationError());
-			}	
-		} else {
-
-		}
+		if (loc.getDeclaration().getValue()==null) {
+			varLocationError.add(loc.getInitializationError());
+		}	
 		return varLocationError;
 	}
 
 	/**
-	 * Visit var array location
+	 * Visit a var array location
 	 */
 	public List<String> visit(VarArrayLocation loc) {
-		return new LinkedList<String>();
+		LinkedList<String> varArrayLocError = new LinkedList<String>();
+		varArrayLocError.addAll(loc.getExpression().accept(this));
+		if (varArrayLocError.size()==0) {
+			// There are no previous errors
+			System.out.println("Array " + loc.getDeclaration().getId());
+			IntLiteral expressionValue = (IntLiteral)loc.getExpression().getValue();
+			Integer arrayCapacity = loc.getDeclaration().getCapacity();
+			if ((expressionValue.getIntegerValue()<0) || (expressionValue.getIntegerValue()>arrayCapacity-1)) {
+				// The expression value is less than zero or greater than the 
+				// array capacity
+				varArrayLocError.add(loc.getInvalidIndexError());
+			}
+		}
+		return varArrayLocError;
 	}
 
 	/**

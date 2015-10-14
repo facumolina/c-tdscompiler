@@ -185,9 +185,9 @@ statement_list ::=  statement_list:l statement:s  	{: l.add(s); RESULT = l; :}
 	|	statement:s 								{: RESULT = new LinkedList<Statement>(Arrays.asList(s));:}
 	;
 
-statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatement(l,AssignOpType.ASSIGN,e);:}
-	| 	location:l PLUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.INCREMENT,e);:}			
-	|	location:l MINUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.DECREMENT,e);:}
+statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatement(l,AssignOpType.ASSIGN,e,lleft+1,lright+1);:}
+	| 	location:l PLUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.INCREMENT,e,lleft+1,lright+1);:}			
+	|	location:l MINUS_EQ expr:e SEMI_COLON				{: RESULT = new AssignStatement(l,AssignOpType.DECREMENT,e,lleft+1,lright+1);:}
 	|	method_call:m SEMI_COLON 							{: RESULT = new MethodCallStatement(m,mleft+1,mright+1); :}
 	|	IF L_PAREN expr:cond R_PAREN block:b 				{: RESULT = new IfStatement(cond,b,condleft+1,condright+1); :}
 	|	IF L_PAREN expr:cond R_PAREN block:ib ELSE block:eb	{: RESULT = new IfStatement(cond,ib,eb,condleft+1,condright+1);:}
@@ -229,7 +229,7 @@ expr ::= location:loc 							{: RESULT = loc; :}
 	| 	expr:e1 OR:o expr:e2					{: RESULT = new BinOpExpr(e1,BinOpType.OR,e2,oleft+1,oright+1); :}
 	|	MINUS:o expr:e 							{: RESULT = new UnaryOpExpr(UnaryOpType.MINUS,e,oleft+1,oright+1); :}
 	%prec uNOT
-	|	NOT:o expr:e 								{: RESULT = new UnaryOpExpr(UnaryOpType.NOT,e,oleft+1,oright+1);:}
+	|	NOT:o expr:e 							{: RESULT = new UnaryOpExpr(UnaryOpType.NOT,e,oleft+1,oright+1);:}
 	%prec uNOT 
 	|	L_PAREN expr:e R_PAREN					{: RESULT = new NullaryExpr(e); :}
 	;

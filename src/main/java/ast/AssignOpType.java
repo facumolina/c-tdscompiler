@@ -20,4 +20,15 @@ public enum AssignOpType {
 		}
 		return null;		
 	}
+
+	/**
+	 * Returns true if the operator is valid for the given type
+	 */
+	public boolean isValidForType(Type t) {
+		switch (t) {
+			case BOOLEAN: if ((this==INCREMENT)||(this==DECREMENT)) return false;
+			default: return true;
+		}
+	}
+	
 }

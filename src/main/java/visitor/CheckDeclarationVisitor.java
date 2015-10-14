@@ -69,6 +69,13 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 	public List<String> visit(FieldDeclaration decl) {
 		LinkedList<String> fieldErrors = new LinkedList<String>();
 		for (DeclarationIdentifier d : decl.getListIds()) {
+			if (d.isArrayDeclarationId()) {
+				// Is an array declaration. 
+				if (d.getCapacity()<=0) {
+					// The array initial size must be greater than 0
+					fieldErrors.add(d.getArrayDeclarationErrorMessage());
+				}
+			}
 			if (!table.addSymbol(d)) {
 				// The symbol already exists.
 				fieldErrors.add(d.getDeclarationErrorMessage());

@@ -108,6 +108,13 @@ public class CheckTypeVisitor implements ASTVisitor<List<String>> {
 			if (!location.getDeclaration().getType().equals(expression.getType())) {
 				// The type is not the same, so add the error.
 				assignError.add(location.getTypeErrorMessage(expression));
+			} else {
+				// The types are the same
+				if (!stmt.compatibleOperator()) {
+					// The assignment operator is not compatible for the type of
+					// the expression
+					assignError.add(stmt.getIncompatibleTypeOperatorError());
+				}
 			}
 		} 
 		

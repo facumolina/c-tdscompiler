@@ -11,12 +11,23 @@ public class AssignStatement extends Statement {
 	/**
 	 * Constructor with a given location, assignment operator and an expression.
 	 */
+	public AssignStatement(Location loc, AssignOpType op, Expression e,int line, int column) {
+		location = loc;
+		expression = e;
+		operator = op;
+		setLineNumber(line);
+		setColumnNumber(column);
+	}
+	
+	/**
+	 * Constructor
+	 */
 	public AssignStatement(Location loc, AssignOpType op, Expression e) {
 		location = loc;
 		expression = e;
 		operator = op;
 	}
-	
+
 	/**
 	 * Get the location
 	 */
@@ -57,6 +68,24 @@ public class AssignStatement extends Statement {
 	 */
 	public void setOperator(AssignOpType op) {
 		operator = op;
+	}
+	
+	/**
+	 * Assuming that the left and right operartors has the same type,
+	 * returns true if that type is compatible with the operator
+	 */
+	public boolean compatibleOperator() {
+		return operator.isValidForType(expression.getType());
+	}
+
+	/**
+	 * Get incompatible type error message
+	 */
+	public String getIncompatibleTypeOperatorError() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Type error: incompatible operator " + operator.toString() 
+				+ " with type " + expression.getType().toString();
+		return lineAndColumn + error ;
 	}
 	
 	@Override

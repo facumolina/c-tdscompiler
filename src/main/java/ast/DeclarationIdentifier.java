@@ -68,15 +68,6 @@ public class DeclarationIdentifier extends Identifiable {
 	}
 
 	/**
-	 * Get declaration error message
-	 */
-	public String getDeclarationErrorMessage() {
-		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
-		String error = "Declaration Error: already exists a field with id " + id;
-		return lineAndColumn + error;
-	}
-
-	/**
 	 * Get value for declaration identifier representing: id
 	 */
 	public Literal getValue() {
@@ -94,6 +85,24 @@ public class DeclarationIdentifier extends Identifiable {
 		listOfValues.add(0,value);
 	}
 
+	/**
+	 * Get declaration error message
+	 */
+	public String getDeclarationErrorMessage() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Declaration Error: already exists a field with id " + id;
+		return lineAndColumn + error;
+	}
+
+	/**
+	 * Get declaration array error message
+	 */
+	public String getArrayDeclarationErrorMessage() {
+		String lineAndColumn = getLineNumber() + ":" + getColumnNumber() + ": " ;
+		String error = "Declaration Error: the array initial size must be greater than 0 ";
+		return lineAndColumn + error;
+	}
+	
 	@Override
 	public String toString() {
 		if (isArrayDeclarationId()) {
