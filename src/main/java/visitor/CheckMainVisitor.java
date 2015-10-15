@@ -205,4 +205,11 @@ public class CheckMainVisitor implements ASTVisitor<Integer> {
 		return 0;
 	}
 
+	/**
+	 * Visit a print statement
+	 */
+	public Integer visit(PrintStatement p) {
+		return 0;
+	}
+	
 }

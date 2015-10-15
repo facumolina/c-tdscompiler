@@ -24,6 +24,7 @@ public interface ASTVisitor<T> {
 	T visit(BreakStatement stmt);
 	T visit(ContinueStatement stmt);
 	T visit(SemicolonStatement stmt);
+	T visit(PrintStatement stmt);
 	
 	/* Visit expressions */
 	T visit(BinOpExpr expr);

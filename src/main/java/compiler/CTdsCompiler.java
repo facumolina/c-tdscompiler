@@ -36,11 +36,13 @@ public class CTdsCompiler {
  			
  			if (errors.size()==0) {
  				// Only interpret the program if there are no previous errors.
+ 				System.out.println("Successful compilation");
+ 				System.out.println("Executing..");
  				interpret(program);
  			}
  			
  			if (errors.size()==0) {
- 				System.out.println("Successful compilation");
+ 				System.out.println("Execution completed");
  			} else {
  				for (String error : errors) {
  					System.out.println(error);

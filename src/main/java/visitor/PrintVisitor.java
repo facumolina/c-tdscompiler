@@ -120,4 +120,11 @@ public class PrintVisitor implements ASTVisitor<String> {
 		return (String)"";
 	}
 	
+	/**
+	 * Visit a print statement
+	 */
+	public String visit(PrintStatement p) {
+		return (String)"";
+	}
+	
 }

@@ -81,7 +81,6 @@ public class DeclarationIdentifier extends Identifiable {
 	 * Set value for declaration identifier representing: id
 	 */
 	public void setValue(Literal value) {
-		System.out.println("adding value " + value.toString());
 		listOfValues.add(0,value);
 	}
 

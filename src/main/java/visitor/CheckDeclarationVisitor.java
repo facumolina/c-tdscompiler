@@ -478,4 +478,10 @@ public class CheckDeclarationVisitor implements ASTVisitor<List<String>> {
 		return new LinkedList<String>();
 	}
 
+	/**
+	 * Visit a print statement accepting the expression
+	 */
+	public List<String> visit(PrintStatement p) {
+		return p.getExpression().accept(this);
+	}
 }

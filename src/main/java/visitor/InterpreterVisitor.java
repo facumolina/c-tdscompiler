@@ -241,9 +241,6 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(BinOpExpr expr) {
 		LinkedList<String> errorBinExpr = new LinkedList<String>();
-		System.out.println("Expr: "+ expr.toString());
-		System.out.println(expr.getLeftOperand().toString());
-		System.out.println(expr.getRightOperand().toString());
 		errorBinExpr.addAll(expr.getLeftOperand().accept(this));
 		errorBinExpr.addAll(expr.getRightOperand().accept(this));
 		if (errorBinExpr.size()==0) {
@@ -432,7 +429,6 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 		varArrayLocError.addAll(loc.getExpression().accept(this));
 		if (varArrayLocError.size()==0) {
 			// There are no previous errors
-			System.out.println("Array " + loc.getDeclaration().getId());
 			IntLiteral expressionValue = (IntLiteral)loc.getExpression().getValue();
 			Integer arrayCapacity = loc.getDeclaration().getCapacity();
 			if ((expressionValue.getIntegerValue()<0) || (expressionValue.getIntegerValue()>arrayCapacity-1)) {
@@ -481,7 +477,6 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	public List<String> visit(Block block) {
 		LinkedList<String> blockErrors = new LinkedList<String>();
 		for (Statement statement : block.getStatements()) {
-			System.out.println("Stmt: " + statement.toString());
 			blockErrors.addAll(statement.accept(this));
 		}
 		return blockErrors;
@@ -492,6 +487,20 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	 */
 	public List<String> visit(SemicolonStatement s) {
 		return new LinkedList<String>();
+	}
+	
+	/**
+	 * Visit a print statement
+	 */
+	public List<String> visit(PrintStatement p) {
+		LinkedList<String> printErrors = new LinkedList<String>();
+		Expression expression = p.getExpression();
+		printErrors.addAll(expression.accept(this));
+		if (printErrors.size()==0) {
+			// There are no errors in the expression. So print it
+			System.out.println(expression.getValue().toString());
+		}
+		return printErrors;
 	}
 	
 }

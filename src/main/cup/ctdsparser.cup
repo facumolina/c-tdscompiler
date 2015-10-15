@@ -52,6 +52,7 @@ terminal CONTINUE;
 terminal EXTERN;
 terminal RETURN;
 terminal VOID;
+terminal PRINT;
 
 terminal PLUS;
 terminal MINUS;
@@ -198,6 +199,7 @@ statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatemen
 	|	BREAK:b SEMI_COLON 									{: RESULT = new BreakStatement(bleft+1,bright+1);:}
 	|	CONTINUE:c SEMI_COLON 								{: RESULT = new ContinueStatement(cleft+1,cright+1);:}
 	|	SEMI_COLON:s 										{: RESULT = new SemicolonStatement(sleft+1,sright+1);:}
+	|	PRINT L_PAREN expr:e R_PAREN						{: RESULT = new PrintStatement(e,eleft+1,eright+1);:}
 	|	block:b 											{: RESULT = b; :}
 	;
 

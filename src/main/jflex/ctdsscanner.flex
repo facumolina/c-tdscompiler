@@ -67,6 +67,7 @@ import java_cup.runtime.*;
 "extern"                               { return symbol(CTdsSymbol.EXTERN,yytext()); }
 "return"                               { return symbol(CTdsSymbol.RETURN,yytext()); }
 "void"                                 { return symbol(CTdsSymbol.VOID,yytext()); }
+"print"                                { return symbol(CTdsSymbol.PRINT,yytext()); }
 
 /* Literals */
 {int_literal}                          { return symbol(CTdsSymbol.INT_LITERAL, new IntLiteral(yytext(),yyline+1,yycolumn+1));}
