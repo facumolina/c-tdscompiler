@@ -30,5 +30,12 @@ public enum AssignOpType {
 			default: return true;
 		}
 	}
+
+	/**
+	 * Returns true if the current operator is equal to the given operator
+	 */
+	public boolean equals(AssignOpType t) {
+		return this.toString().equals(t.toString());
+	}
 	
 }

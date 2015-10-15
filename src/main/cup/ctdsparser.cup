@@ -191,7 +191,7 @@ statement ::= location:l EQ expr:e SEMI_COLON 				{: RESULT = new AssignStatemen
 	|	method_call:m SEMI_COLON 							{: RESULT = new MethodCallStatement(m,mleft+1,mright+1); :}
 	|	IF L_PAREN expr:cond R_PAREN block:b 				{: RESULT = new IfStatement(cond,b,condleft+1,condright+1); :}
 	|	IF L_PAREN expr:cond R_PAREN block:ib ELSE block:eb	{: RESULT = new IfStatement(cond,ib,eb,condleft+1,condright+1);:}
-	|	FOR ID:id EQ expr:cond COMMA expr:e block:b     	{: RESULT = new ForStatement(id,cond,e,b,idleft+1,idright+1);:}
+	|	FOR ID:id EQ expr:init COMMA expr:e block:b     	{: RESULT = new ForStatement(id,init,e,b,idleft+1,idright+1);:}
 	|	WHILE expr:cond block:b 							{: RESULT = new WhileStatement(cond,b,condleft+1,condright+1);:}
 	|	RETURN:r expr:e SEMI_COLON 							{: RESULT = new ReturnStatement(e,rleft+1,rright+1);:}
 	|	RETURN:r SEMI_COLON 								{: RESULT = new ReturnStatement(rleft+1,rright+1);:}

@@ -89,13 +89,47 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 				}
 			} else {
 				// The location is a var
-				location.getDeclaration().setValue(expression.getValue());
+				if (stmt.getOperator().equals(AssignOpType.INCREMENT) || stmt.getOperator().equals(AssignOpType.DECREMENT)) {
+					// The location must have initialized
+					assignErrors.addAll(location.accept(this));
+				}
+				if (assignErrors.size()==0) {
+					location.getDeclaration().setValue(evaluateAssign(location,stmt.getOperator(),expression));
+				}
 			}
 				
 		}
 		return assignErrors;
 	}
 
+	/**
+	 * Evaluate assign 
+	 */
+	private Literal evaluateAssign(Location l,AssignOpType op,Expression e) {
+		Literal locationValue = l.getDeclaration().getValue();
+		switch (op) {
+			case ASSIGN: return e.getValue();
+			case INCREMENT: 
+				if (locationValue instanceof IntLiteral) {
+					Integer n = ((IntLiteral)locationValue).getIntegerValue()+((IntLiteral)e.getValue()).getIntegerValue();
+					return new IntLiteral(n);
+				}
+				if (locationValue instanceof FloatLiteral) {
+					Float f = ((FloatLiteral)locationValue).getFloatValue()+((FloatLiteral)e.getValue()).getFloatValue();
+					return new FloatLiteral(f);
+				}
+			case DECREMENT:
+				if (locationValue instanceof IntLiteral) {
+					Integer n = ((IntLiteral)locationValue).getIntegerValue()-((IntLiteral)e.getValue()).getIntegerValue();
+					return new IntLiteral(n);
+				}
+				if (locationValue instanceof FloatLiteral) {
+					Float f = ((FloatLiteral)locationValue).getFloatValue()-((FloatLiteral)e.getValue()).getFloatValue();
+					return new FloatLiteral(f);
+				}
+			default: return null;
+		}
+	}
 	/**
 	 * Visit a method call statement
 	 */
@@ -120,24 +154,71 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 	}
 
 	/**
-	 * Visit an if statement 
+	 * Visit an if statement accepting the expression and taking the ifblock or
+	 * the else block according to the expression value
 	 */
 	public List<String> visit(IfStatement stmt) {
-		return new LinkedList<String>();
+		LinkedList<String> ifStmtErrors = new LinkedList<String>();
+		Expression expression = stmt.getCondition();
+		ifStmtErrors.addAll(expression.accept(this));
+		if (ifStmtErrors.size()==0) {
+			// There are no errors in the expression
+			BooleanLiteral value = (BooleanLiteral)expression.getValue();
+			if (value.getBooleanValue()) {
+				// The expression value is true so accept the if block
+				ifStmtErrors.addAll(stmt.getIfBlock().accept(this));
+			} else {
+				// The expression value is false, so if the statement has else block 
+				// accept the else block
+				if (stmt.hasElseBlock()) {
+					ifStmtErrors.addAll(stmt.getElseBlock().accept(this));
+				}
+			}
+		}
+		return ifStmtErrors;
 	}	
 
 	/**
-	 * Visit a for statement 
+	 * Visit a for statement accepting the block 
 	 */
 	public List<String> visit(ForStatement stmt) {
-		return new LinkedList<String>();
+		LinkedList<String> forStmtErrors = new LinkedList<String>();
+		AssignStatement initialAssign = stmt.getInitialAssign();
+		Expression condition = stmt.getConditionExpression();
+		forStmtErrors.addAll(initialAssign.accept(this));
+		forStmtErrors.addAll(condition.accept(this));
+		if (forStmtErrors.size()==0) {
+			// There are no errors in the expression
+			DeclarationIdentifier index = (DeclarationIdentifier)initialAssign.getLocation().getDeclaration();
+			IntLiteral indexValue = (IntLiteral)index.getValue();
+			IntLiteral conditionValue = (IntLiteral)condition.getValue();
+			while ( (indexValue.getIntegerValue()<conditionValue.getIntegerValue()) 
+					&& (forStmtErrors.size()==0)) {
+				// Accept the block while index value < condition 
+				forStmtErrors.addAll(stmt.getBlock().accept(this));
+				indexValue.setIntegerValue(indexValue.getIntegerValue()+1); 
+			}
+		}
+		return forStmtErrors;
 	}
 
 	/**
 	 * Visit a while statement 
 	 */
 	public List<String> visit(WhileStatement stmt){
-		return new LinkedList<String>();
+		LinkedList<String> whileStmtErrors = new LinkedList<String>();
+		Expression condition = stmt.getCondition();
+		whileStmtErrors.addAll(condition.accept(this));
+		if (whileStmtErrors.size()==0) {
+			// There are no errors in the condition expression
+			while (((BooleanLiteral)condition.getValue()).getBooleanValue()
+					&& (whileStmtErrors.size()==0)) {
+				// Accept the block while the condition be true
+				whileStmtErrors.addAll(stmt.getBlock().accept(this));
+				whileStmtErrors.addAll(condition.accept(this));
+			}
+		}
+		return whileStmtErrors;
 	}
 
 	/**
