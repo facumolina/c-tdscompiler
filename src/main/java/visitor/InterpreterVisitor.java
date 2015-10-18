@@ -85,7 +85,10 @@ public class InterpreterVisitor implements ASTVisitor<List<String>> {
 				assignErrors.addAll(location.accept(this));
 				if (assignErrors.size()==0) {
 					// There are no errors in the array location
-					location.getDeclaration().setValue(expression.getValue());
+					VarArrayLocation arrayLocation = (VarArrayLocation)location;
+					Expression locationExpression = arrayLocation.getExpression();
+					IntLiteral position = (IntLiteral)locationExpression.getValue();
+					location.getDeclaration().setValue(position.getIntegerValue(),expression.getValue());
 				}
 			} else {
 				// The location is a var

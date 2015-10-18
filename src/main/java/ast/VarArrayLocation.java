@@ -77,6 +77,17 @@ public class VarArrayLocation extends Location {
 		listIds = l;
 	}
 
+	@Override
+	public Literal getValue() {
+		IntLiteral position = (IntLiteral)expr.getValue();
+		return decl.getValue(position.getIntegerValue());
+	}
+
+	@Override
+	public void setValue(Literal value) {
+		decl.setValue(value);
+	}
+
 	/**
 	 * Returns true if the location is simple, that is it has the form ID[expr]
 	 * and returns false if is extended.

@@ -45,4 +45,16 @@ public enum Type {
 		}
 		return false;
 	}
+
+	/**
+	 * Returns the default value 
+	 */
+	public Literal getDefaultValue() {
+		switch (this) {
+			case INT: return new IntLiteral(0);
+			case FLOAT:	return new FloatLiteral(new Float(0));
+			case BOOLEAN: return new BooleanLiteral();
+			default: return null;
+		}
+	}
 }

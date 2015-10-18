@@ -58,6 +58,14 @@ public class DeclarationIdentifier extends Identifiable {
  	 */
 	public void setType(Type t) {
 		type = t;
+		if (isArrayDeclarationId()) {
+			// Fill the array with the default values
+			for (int i=0; i<capacity ; i++) {
+				listOfValues.add(i,t.getDefaultValue());
+			}
+		} else {
+			listOfValues.add(0,t.getDefaultValue());
+		}
 	}
 	
 	/**
@@ -81,7 +89,21 @@ public class DeclarationIdentifier extends Identifiable {
 	 * Set value for declaration identifier representing: id
 	 */
 	public void setValue(Literal value) {
-		listOfValues.add(0,value);
+		listOfValues.set(0,value);
+	}
+
+	/**
+	 * Get value for declaration identifier representing: id[x]
+	 */
+	public Literal getValue(Integer n) {
+		return listOfValues.get(n);
+	}
+
+	/**
+	 * Set value for declaration identifier representing: id[x]
+	 */
+	public void setValue(Integer n,Literal value) {
+		listOfValues.set(n,value);
 	}
 
 	/**
