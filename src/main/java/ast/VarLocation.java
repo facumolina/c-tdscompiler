@@ -73,6 +73,11 @@ public class VarLocation extends Location {
 		return decl.getValue();
 	}
 	
+	@Override
+	public void setValue(Literal value) {
+		decl.setValue(value);
+	}
+	
 	/**
 	 * Get no declaration error message
 	 */

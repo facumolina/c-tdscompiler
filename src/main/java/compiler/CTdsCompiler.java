@@ -10,6 +10,7 @@ public class CTdsCompiler {
 	
 	private static CTdsParser parser;			// Parser
 	private static LinkedList<String> errors; 	// Errors
+	private static LinkedList<IntermediateCodeStatement> iCodeStatements; // Intermediate code statements
 	
 	/* 
  	 * Main method for run the compiler with an input file 
@@ -18,9 +19,11 @@ public class CTdsCompiler {
  		
  		try {
 
+ 			errors = new LinkedList<String>();
+ 			iCodeStatements = new LinkedList<IntermediateCodeStatement>();
+
  			// Read file
  			parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
- 			errors = new LinkedList<String>();
  			Program program = (Program)parser.parse().value;
 
  			// Check Main Method
@@ -35,6 +38,14 @@ public class CTdsCompiler {
  			}
  			
  			if (errors.size()==0) {
+ 				// Only generate the intermedite code if there are no type errors
+ 				generateIntermediateCode(program);
+ 				for (IntermediateCodeStatement i : iCodeStatements) {
+ 					System.out.println(i.toString());
+ 				}
+ 			}
+
+ 			if (errors.size()==0) {
  				// Only interpret the program if there are no previous errors.
  				System.out.println("Successful compilation");
  				System.out.println("Executing..");
@@ -48,6 +59,7 @@ public class CTdsCompiler {
  					System.out.println(error);
  				}
  			}
+ 		
  		} catch (Exception e) {
  			e.printStackTrace();
  			System.out.println("Compilation failed");
@@ -82,6 +94,15 @@ public class CTdsCompiler {
  		errors.addAll(checkTypeVisitor.visit(p));
  	}
  	
+ 	/**
+ 	 * Generate intermediate code
+ 	 */
+ 	public static void generateIntermediateCode(Program p) {
+ 		IntermediateCodeGeneratorVisitor iCGVisitor = new IntermediateCodeGeneratorVisitor();
+ 		iCGVisitor.visit(p);
+ 		iCodeStatements = iCGVisitor.getIntermediateCodeList();
+ 	}
+
  	/**
  	 * Interpret the program
  	 */
