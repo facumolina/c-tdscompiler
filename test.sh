@@ -6,3 +6,4 @@ java -cp $CLASSPATH:. org.junit.runner.JUnitCore CTdsScannerTest
 java -cp $CLASSPATH:. org.junit.runner.JUnitCore CTdsParserTest
 java -cp $CLASSPATH:. org.junit.runner.JUnitCore CheckDeclarationVisitorTest
 java -cp $CLASSPATH:. org.junit.runner.JUnitCore CheckTypeVisitorTest
+java -cp $CLASSPATH:. org.junit.runner.JUnitCore InterpreterVisitorTest
