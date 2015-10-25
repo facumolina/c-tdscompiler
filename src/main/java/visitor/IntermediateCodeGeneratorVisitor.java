@@ -254,9 +254,47 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	}	
 
 	/**
-	 * Visit a for statement accepting the block 
+	 * Visit a for statement accepting the initial assign and the block
 	 */
 	public Location visit(ForStatement stmt) {
+		
+		VarLocation temporalLocation = (VarLocation)stmt.getInitialAssign().accept(this);
+
+		int beforeEvaluateExpression = amountOfStatements();
+
+		// Create an expression for compare if the location of
+		// initial variable is less or equal than the expression
+		Expression comparationExpression = new BinOpExpr(temporalLocation,BinOpType.LEQ,stmt.getConditionExpression(),0,0);
+		comparationExpression.setType(Type.BOOLEAN);
+		VarLocation temporalLocation2 = (VarLocation)comparationExpression.accept(this);
+
+		// Add the jump instruction. Later will be modificated with the correct 
+		// label to jump
+		Label label = new Label(amountOfStatements());
+		Label labelToJump = new Label(0);
+		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,temporalLocation2,labelToJump);
+		intermediateCodeStatements.add(jumpFICStmt);
+		statementsCounter++; 
+
+		//int beforeBlockAmountOfStatements = amountOfStatements();
+		stmt.getBlock().accept(this);
+
+		// Increment the cycle variable
+		Label l = new Label(amountOfStatements());
+		IntermediateCodeStatement addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDI,l,temporalLocation,new IntLiteral(1),temporalLocation);
+		intermediateCodeStatements.add(addICStmt);
+		statementsCounter++;
+
+		// Set the correct label number to the first jump
+		labelToJump.setNumber(amountOfStatements()+1); 
+		
+		// Jump to the comparation for cycle again
+		Label afterBlockLabel = new Label(amountOfStatements());
+		Label toJumpAfterBlock = new Label(beforeEvaluateExpression); 
+		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterBlockLabel,toJumpAfterBlock);
+		intermediateCodeStatements.add(jumpICStmt);
+		statementsCounter++; 
+
 		return null;
 	}
 
@@ -367,17 +405,17 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 			temporalLocation2.getDeclaration().setType(expr.getType());
 
 			IntermediateCodeStatement eqICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.EQ,new Label(statementsCounter),leftExpression,rightExpression,temporalLocation2); 
-			
+			intermediateCodeStatements.add(eqICStmt);
+			statementsCounter++;
+
 			tempVarName = getTempVarName();
 			VarLocation temporalLocation3 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
 			temporalLocation3.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
 			temporalLocation3.getDeclaration().setType(expr.getType());
 
 			IntermediateCodeStatement orICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.OR,new Label(statementsCounter),temporalLocation,temporalLocation2,temporalLocation3); 
-
-			intermediateCodeStatements.add(eqICStmt);
 			intermediateCodeStatements.add(orICStmt);
-			statementsCounter+=2;
+			statementsCounter++;
 
 			return temporalLocation3;
 		
