@@ -9,13 +9,16 @@ import java.util.LinkedList;
 public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 
 	private LinkedList<IntermediateCodeStatement> intermediateCodeStatements;			// Errors
-	private int temporalVarsCounter = 0;
+	private int temporalVarsCounter;
+	private int statementsCounter;
 
 	/**
 	 * Constructor
 	 */
 	public IntermediateCodeGeneratorVisitor() {
 		intermediateCodeStatements = new LinkedList<IntermediateCodeStatement>();
+		temporalVarsCounter = 0;
+		statementsCounter = 0;
 	}
 
 	/**
@@ -25,6 +28,13 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		String tempName = "t"+temporalVarsCounter;
 		temporalVarsCounter++;
 		return tempName;
+	}
+
+	/**
+	 * Get the amount of statements
+	 */
+	public int amountOfStatements() {
+		return statementsCounter;
 	}
 
 	/**
@@ -109,25 +119,27 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 					temporalLocation.getDeclaration().setType(Type.INT);
 					if (expressionLocation!=null) {
 						// The expression result was stored in a temporal location
-						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDI,stmt.getLocation(),expressionLocation,temporalLocation);
+						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDI,new Label(statementsCounter),stmt.getLocation(),expressionLocation,temporalLocation);
 					} else {
 						// The expression alone does not need a temporal location
-						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDI,stmt.getLocation(),stmt.getExpression(),temporalLocation);
+						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDI,new Label(statementsCounter),stmt.getLocation(),stmt.getExpression(),temporalLocation);
 					}
 				} else {
 					// The location type is float
 					temporalLocation.getDeclaration().setType(Type.FLOAT);
 					if (expressionLocation!=null) {
 						// The expression result was stored in a temporal location
-						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDF,stmt.getLocation(),expressionLocation,temporalLocation);
+						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDF,new Label(statementsCounter),stmt.getLocation(),expressionLocation,temporalLocation);
 					} else {
 						// The expression alone does not need a temporal location
-						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDF,stmt.getLocation(),stmt.getExpression(),temporalLocation);
+						addICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.ADDF,new Label(statementsCounter),stmt.getLocation(),stmt.getExpression(),temporalLocation);
 					}
 				}
 				intermediateCodeStatements.add(addICStmt);
-				assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,temporalLocation,stmt.getLocation());
+				statementsCounter++;
+				assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,new Label(statementsCounter),temporalLocation,stmt.getLocation());
 				intermediateCodeStatements.add(assignICStmt);
+				statementsCounter++;
 				break;
 			case DECREMENT: 
 				// The assignment opertator is -=. So create one instruction for solve
@@ -143,36 +155,39 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 					temporalLocation.getDeclaration().setType(Type.INT);
 					if (expressionLocation!=null) {
 						// The expression result was stored in a temporal location
-						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBI,stmt.getLocation(),expressionLocation,temporalLocation);
+						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBI,new Label(statementsCounter),stmt.getLocation(),expressionLocation,temporalLocation);
 					} else {
 						// The expression alone does not need a temporal location
-						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBI,stmt.getLocation(),stmt.getExpression(),temporalLocation);
+						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBI,new Label(statementsCounter),stmt.getLocation(),stmt.getExpression(),temporalLocation);
 					}
 				} else {
 					// The location type is float
 					temporalLocation.getDeclaration().setType(Type.FLOAT);
 					if (expressionLocation!=null) {
 						// The expression result was stored in a temporal location
-						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBF,stmt.getLocation(),expressionLocation,temporalLocation);
+						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBF,new Label(statementsCounter),stmt.getLocation(),expressionLocation,temporalLocation);
 					} else {
 						// The expression alone does not need a temporal location
-						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBF,stmt.getLocation(),stmt.getExpression(),temporalLocation);
+						subICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.SUBF,new Label(statementsCounter),stmt.getLocation(),stmt.getExpression(),temporalLocation);
 					}
 				}
 				intermediateCodeStatements.add(subICStmt);
-				assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,temporalLocation,stmt.getLocation());
+				statementsCounter++;
+				assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,new Label(statementsCounter),temporalLocation,stmt.getLocation());
 				intermediateCodeStatements.add(assignICStmt);
+				statementsCounter++;
 				break;
 			case ASSIGN:
 				expressionLocation = (VarLocation)stmt.getExpression().accept(this);
 				if (expressionLocation!=null) {
 					// The expression result was stored in a temporal location
-					assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,expressionLocation,stmt.getLocation());
+					assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,new Label(statementsCounter),expressionLocation,stmt.getLocation());
 				} else {
 					// The expression alone does not need a temporal location
-					assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,stmt.getExpression(),stmt.getLocation());
+					assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,new Label(statementsCounter),stmt.getExpression(),stmt.getLocation());
 				}
 				intermediateCodeStatements.add(assignICStmt);
+				statementsCounter++;
 				break;
 			default: break;
 		}
@@ -180,25 +195,61 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	}
 
 	/**
-	 * Visit a method call statement
+	 * Visit a method call statement accepting the method call
 	 */
 	public Location visit(MethodCallStatement stmt) {
-		return null;
+		return stmt.getMethodCall().accept(this);
 	}
 
 	/**
-	 * Visit a return statement accepting the return expression and
-	 * setting the value to the associated method 
+	 * Visit a return statement accepting the return expression 
 	 */
 	public Location visit(ReturnStatement stmt) {
-		return null;
+		if (stmt.hasExpression()) {
+			return stmt.getExpression().accept(this);
+		} else {
+			return null;
+		}
 	}
 
 	/**
-	 * Visit an if statement accepting the expression and taking the ifblock or
-	 * the else block according to the expression value
+	 * Visit an if statement accepting the expression and the blocks
 	 */
 	public Location visit(IfStatement stmt) {
+
+		VarLocation temporalLocation = (VarLocation)stmt.getCondition().accept(this);
+		
+		int beforeBlockAmountOfStatements = amountOfStatements();
+		
+		// Add the jump instruction. Later will be modificated with the correct 
+		// label to jump
+		Label label = new Label(beforeBlockAmountOfStatements);
+		Label labelToJump = new Label(0);
+		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,temporalLocation,labelToJump);
+		intermediateCodeStatements.add(jumpFICStmt);
+		statementsCounter++; 
+
+		// Accept the if block
+		stmt.getIfBlock().accept(this);
+		
+		if (stmt.hasElseBlock()) {
+			// Set the correct label number to jump
+			labelToJump.setNumber(amountOfStatements()+1);
+			// Add the jump instruction at the end of the if block
+			Label afterIfLabel = new Label(amountOfStatements());
+			Label toJumpAfterIf = new Label(0); 
+			IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterIfLabel,toJumpAfterIf);
+			intermediateCodeStatements.add(jumpICStmt);
+			statementsCounter++; 
+
+			stmt.getElseBlock().accept(this);
+			// Set the correct label number to jump after if
+			toJumpAfterIf.setNumber(amountOfStatements());
+		
+		} else {
+			// Set the correct label number to jump
+			labelToJump.setNumber(amountOfStatements());
+		} 
 		return null;
 	}	
 
@@ -210,9 +261,33 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	}
 
 	/**
-	 * Visit a while statement 
+	 * Visit a while statement accepting the expression and the block
 	 */
 	public Location visit(WhileStatement stmt){
+		int amountOfStatementsBeforeConditionEval = amountOfStatements();
+		VarLocation temporalLocation = (VarLocation)stmt.getCondition().accept(this);
+		int amountOfStatementsAfterConditionEval = amountOfStatements();
+
+		// Add the jump instruction in the case that the expression
+		// result was false. Later will be modificated with the correct 
+		// label to jump
+		Label label = new Label(amountOfStatements());
+		Label labelToJump = new Label(0);
+		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,temporalLocation,labelToJump);
+		intermediateCodeStatements.add(jumpFICStmt);
+		statementsCounter++;
+
+		// Accept the block
+		stmt.getBlock().accept(this);
+		labelToJump.setNumber(amountOfStatements()+1);
+
+		// After the block, jump to the condition evaluation label
+		Label afterBlockLabel = new Label(amountOfStatements());
+		Label conditionEvalLabel = new Label(label.getNumber()-(amountOfStatementsAfterConditionEval-amountOfStatementsBeforeConditionEval));
+		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterBlockLabel,conditionEvalLabel);
+		intermediateCodeStatements.add(jumpICStmt);
+		statementsCounter++;
+
 		return null;
 	}
 
@@ -238,36 +313,83 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		IntermediateCodeStatement exprICStmt;
 		IntermediateCodeInstruction instruction = getInstruction(expr.getOperator(),expr.getType());
 		VarLocation leftExpressionLocation = (VarLocation)expr.getLeftOperand().accept(this);
+		Expression leftExpression;
+		if (leftExpressionLocation==null) {
+			// The left expression does not need a temporal location
+			leftExpression = expr.getLeftOperand();
+		} else {
+			// The left expression result was stored in a temporal location
+			leftExpression = leftExpressionLocation;
+		}
 		VarLocation rightExpressionLocation = (VarLocation)expr.getRightOperand().accept(this);
+		Expression rightExpression;
+		if (rightExpressionLocation==null) {
+			// The right expression does not need a temporal location
+			rightExpression = expr.getRightOperand();
+		} else {
+			// The right expression result was stored in a temporal location
+			rightExpression = rightExpressionLocation;
+		}
 		String tempVarName = getTempVarName();
 		VarLocation temporalLocation = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
 		temporalLocation.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
 		temporalLocation.getDeclaration().setType(expr.getType());
-		if (leftExpressionLocation!=null) {
-			if (rightExpressionLocation!=null) {
-				// The left and right expressions result was stored in a temporal location
-				return null;
-			} else {
-				// Only the left expression result was stored in a temporal location
-				return null;
-			}
+		
+		exprICStmt = new ThreeAddressStatement(instruction,new Label(statementsCounter),leftExpression,rightExpression,temporalLocation);
+		intermediateCodeStatements.add(exprICStmt);
+		statementsCounter++;
+
+		// Consider the cases in which is needed more than one intermediate
+		// code statement
+
+		if (expr.getOperator()==BinOpType.NEQ) {
+			// The binary operator is !=. So add an instruction for negate, because the exprICStmt
+			// was setted with the EQ instruction.
+
+			tempVarName = getTempVarName();
+			VarLocation temporalLocation2 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+			temporalLocation2.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
+			temporalLocation2.getDeclaration().setType(expr.getType());
+
+			IntermediateCodeStatement negICStmt = new TwoAddressStatement(IntermediateCodeInstruction.NOT,new Label(statementsCounter),temporalLocation,temporalLocation2);
+			intermediateCodeStatements.add(negICStmt);
+			statementsCounter++;
+			return temporalLocation2;
+		
+		} else if ((expr.getOperator()==BinOpType.LEQ) || (expr.getOperator()==BinOpType.GEQ)) {
+			// The binary operator is <= or >=. So add one instruction for equality and another
+			// instruction for make an or, between the equality result and the result of
+			// exprICStmt
+
+			tempVarName = getTempVarName();
+			VarLocation temporalLocation2 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+			temporalLocation2.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
+			temporalLocation2.getDeclaration().setType(expr.getType());
+
+			IntermediateCodeStatement eqICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.EQ,new Label(statementsCounter),leftExpression,rightExpression,temporalLocation2); 
+			
+			tempVarName = getTempVarName();
+			VarLocation temporalLocation3 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+			temporalLocation3.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
+			temporalLocation3.getDeclaration().setType(expr.getType());
+
+			IntermediateCodeStatement orICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.OR,new Label(statementsCounter),temporalLocation,temporalLocation2,temporalLocation3); 
+
+			intermediateCodeStatements.add(eqICStmt);
+			intermediateCodeStatements.add(orICStmt);
+			statementsCounter+=2;
+
+			return temporalLocation3;
+		
 		} else {
-			if (rightExpressionLocation!=null) {
-				// Only the right expression result was stored in a temporal location
-				return null;
-			} else {
-				// The left and right expressions does not need a temporal location
-				exprICStmt = new ThreeAddressStatement(instruction,expr.getLeftOperand(),expr.getRightOperand(),temporalLocation);
-				intermediateCodeStatements.add(exprICStmt);
-				return temporalLocation;
-			}
+			// Not need more instructions
+			return temporalLocation;
 		}
 		
-
 	}
 
 	/**
-	 * Get the instruction for the given binary operator and a tpye
+	 * Get the instruction for the given binary operator and tpye
 	 */
 	private IntermediateCodeInstruction getInstruction(BinOpType op,Type t) {
 		switch(op) {
@@ -290,25 +412,29 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 					return IntermediateCodeInstruction.MULTF;
 				}
 			case DIVIDE:
-				return null;
+				if (t.equals(Type.INT)) {
+					return IntermediateCodeInstruction.DIVI;
+				} else {
+					return IntermediateCodeInstruction.DIVF;
+				}
 			case MOD:
-				return null;			
+				return IntermediateCodeInstruction.MOD;			
 			case LE:
-				return null;		
+				return IntermediateCodeInstruction.LESS;		
 			case LEQ:
-				return null;
+				return IntermediateCodeInstruction.LESS;
 			case GE:
-				return null;		
+				return IntermediateCodeInstruction.GREAT;		
 			case GEQ:
-				return null;
+				return IntermediateCodeInstruction.GREAT;
 			case CEQ:
-				return null;
+				return IntermediateCodeInstruction.EQ;
 			case NEQ:
-				return null;
+				return IntermediateCodeInstruction.EQ;
 			case AND:
-				return null;
+				return IntermediateCodeInstruction.AND;
 			case OR:
-				return null;
+				return IntermediateCodeInstruction.OR;
 		}
 		return null;
 	}
@@ -317,6 +443,39 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a unary expression 
 	 */
 	public Location visit(UnaryOpExpr expr) {
+		IntermediateCodeStatement exprICStmt;
+		IntermediateCodeInstruction instruction = getInstruction(expr.getOperator(),expr.getType());
+		VarLocation expressionLocation = (VarLocation)expr.getOperand().accept(this);
+		String tempVarName = getTempVarName();
+		VarLocation temporalLocation = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+		temporalLocation.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
+		temporalLocation.getDeclaration().setType(expr.getType());
+		if (expressionLocation!=null) {
+			// The expression result was stored in a temporal location
+			exprICStmt = new TwoAddressStatement(instruction,new Label(statementsCounter),expressionLocation,temporalLocation);
+		} else {
+			// The expression does not need a temporal location
+			exprICStmt = new TwoAddressStatement(instruction,new Label(statementsCounter),expr.getOperand(),temporalLocation);
+		}
+		intermediateCodeStatements.add(exprICStmt);
+		statementsCounter++;
+		return temporalLocation;
+	}
+
+	/**
+	 * Get the instruction for the given unary operator and tpye
+	 */
+	private IntermediateCodeInstruction getInstruction(UnaryOpType op,Type t) {
+		switch(op) {
+			case NOT:
+				return IntermediateCodeInstruction.NOT;
+			case MINUS:
+				if (t.equals(Type.INT)) {
+					return IntermediateCodeInstruction.SUBI;
+				} else{ 
+					return IntermediateCodeInstruction.SUBF;
+				}
+		}
 		return null;
 	}
 
@@ -324,7 +483,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a nullary expression
 	 */
 	public Location visit(NullaryExpr expr) {
-		return null;
+		return expr.getExpression().accept(this);
 	}
 
 	/**
@@ -349,10 +508,10 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	}
 
 	/**
-	 * Visit a var location accepting it if it has been initialized
+	 * Visit a var location 
 	 */
 	public Location visit(VarLocation loc) {
-		return null;
+		return loc;
 	}
 
 	/**

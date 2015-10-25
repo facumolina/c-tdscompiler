@@ -4,15 +4,17 @@
  */
 public class IntermediateCodeStatement {
 
-	protected IntermediateCodeInstruction instruction;
-
+	protected Label label;								// Label - line number
+	protected IntermediateCodeInstruction instruction;	// Instruction
+	
 	/**
 	 * Constructor
 	 */
-	public IntermediateCodeStatement(IntermediateCodeInstruction instruction) {
+	public IntermediateCodeStatement(IntermediateCodeInstruction instruction,Label label) {
 		this.instruction = instruction;
+		this.label = label;
 	}
-	
+
 	/**
 	 * Get the instruction
 	 */
@@ -27,9 +29,23 @@ public class IntermediateCodeStatement {
 		instruction = i;
 	}
 
+	/**
+	 * Get the label 
+	 */
+	public Label getLabel() {
+		return label;
+	}
+
+	/**
+	 * Set the label 
+	 */
+	public void setLabel(Label label) {
+		this.label = label;
+	}
+
 	@Override
 	public String toString() {
-		return instruction.toString();
+		return label.toString() + ": " + instruction.toString();
 	}
 	
 }

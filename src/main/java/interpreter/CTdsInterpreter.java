@@ -3,24 +3,22 @@ import java.io.*;
 import java.util.LinkedList;
 
 /**
- * This class represents the compiler.
+ * This class represents the interpreter.
  * @author Facundo Molina
  */
-public class CTdsCompiler {
+public class CTdsInterpreter {
 	
 	private static CTdsParser parser;			// Parser
 	private static LinkedList<String> errors; 	// Errors
-	private static LinkedList<IntermediateCodeStatement> iCodeStatements; // Intermediate code statements
 	
 	/* 
- 	 * Main method for run the compiler with an input file 
+ 	 * Main method for run the interpreter with an input file 
  	 */
  	public static void main(String[] argv) {
  		
  		try {
 
  			errors = new LinkedList<String>();
- 			iCodeStatements = new LinkedList<IntermediateCodeStatement>();
 
  			// Read file
  			parser = new CTdsParser(new CTdsScanner(new FileReader(argv[0])));
@@ -37,16 +35,15 @@ public class CTdsCompiler {
  				checkTypes(program); 			
  			}
  			
+
  			if (errors.size()==0) {
- 				// Only generate the intermedite code if there are no type errors
- 				generateIntermediateCode(program);
- 				for (IntermediateCodeStatement i : iCodeStatements) {
- 					System.out.println(i.toString());
- 				}
+ 				// Only interpret the program if there are no previous errors.
+ 				System.out.println("Executing..");
+ 				interpret(program);
  			}
  			
  			if (errors.size()==0) {
- 				System.out.println("Compilation completed");
+ 				System.out.println("Execution completed");
  			} else {
  				for (String error : errors) {
  					System.out.println(error);
@@ -55,7 +52,7 @@ public class CTdsCompiler {
  		
  		} catch (Exception e) {
  			e.printStackTrace();
- 			System.out.println("Compilation failed");
+ 			System.out.println("Execution failed");
  		}
  		
  	}
@@ -86,14 +83,13 @@ public class CTdsCompiler {
  		CheckTypeVisitor checkTypeVisitor = new CheckTypeVisitor();
  		errors.addAll(checkTypeVisitor.visit(p));
  	}
- 	
+
  	/**
- 	 * Generate intermediate code
+ 	 * Interpret the program
  	 */
- 	public static void generateIntermediateCode(Program p) {
- 		IntermediateCodeGeneratorVisitor iCGVisitor = new IntermediateCodeGeneratorVisitor();
- 		iCGVisitor.visit(p);
- 		iCodeStatements = iCGVisitor.getIntermediateCodeList();
+ 	public static void interpret(Program p) {
+ 		InterpreterVisitor interpreterVisitor = new InterpreterVisitor();
+ 		errors.addAll(interpreterVisitor.visit(p));
  	}
 
 }

@@ -9,8 +9,8 @@ public class TwoAddressStatement extends IntermediateCodeStatement {
 	/**
 	 * Constructor
 	 */
-	public TwoAddressStatement(IntermediateCodeInstruction instruction,Expression expression, Expression result) {
-		super(instruction);
+	public TwoAddressStatement(IntermediateCodeInstruction instruction,Label label,Expression expression, Expression result) {
+		super(instruction,label);
 		this.expression = expression;
 		this.result = result;
 	}
@@ -45,7 +45,8 @@ public class TwoAddressStatement extends IntermediateCodeStatement {
 
 	@Override
 	public String toString() {
-		return instruction.toString() + " " + expression.toString() + " " + result.toString();
+		return label.toString() + ": " + instruction.toString() 
+			+ " " + expression.toString() + " " + result.toString();
 	}
 
 }

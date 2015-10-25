@@ -8,8 +8,20 @@ public enum IntermediateCodeInstruction {
 	ADDF,			// Float addition
 	SUBI,			// Integer substraction
 	SUBF,			// Float substraction
-	MULTI,			// Interger multiplication
+	MULTI,			// Integer multiplication
 	MULTF,			// Float multiplication
+	DIVI, 			// Integer division
+	DIVF,			// Float division
+	MOD,			// Mod
+	LESS,			// Less 
+	GREAT,			// Great
+	EQ,				// Equality
+	NEQ,			// Non equality
+	AND,			// Conjunction
+	OR,				// Disyunction
+	NOT,			// Negator
+	JUMP,			// Jump
+	JUMPF,			// Jump for false
 	ASSIGN;			// Assignment
 
 	@Override
@@ -27,6 +39,28 @@ public enum IntermediateCodeInstruction {
 				return "MULTI";
 			case MULTF:
 				return "MULTF";
+			case DIVI:
+				return "DIVI";
+			case DIVF:
+				return "DIVF";
+			case MOD:
+				return "MOD";
+			case LESS:
+				return "LESS";
+			case GREAT:
+				return "GREAT";
+			case EQ:
+				return "EQ";
+			case AND:
+				return "AND";
+			case OR:
+				return "OR";
+			case NOT:
+				return "NOT";
+			case JUMP:
+				return "JUMP";
+			case JUMPF:
+				return "JUMPF";
 			case ASSIGN:
 				return "ASSIGN";
 		}

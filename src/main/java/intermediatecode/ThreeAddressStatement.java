@@ -10,8 +10,8 @@ public class ThreeAddressStatement extends IntermediateCodeStatement {
 	/**
 	 * Constructor
 	 */
-	public ThreeAddressStatement(IntermediateCodeInstruction instruction,Expression expressionOne,Expression expressionTwo, Expression result) {
-		super(instruction);
+	public ThreeAddressStatement(IntermediateCodeInstruction instruction, Label label,Expression expressionOne,Expression expressionTwo, Expression result) {
+		super(instruction,label);
 		this.expressionOne = expressionOne;
 		this.expressionTwo = expressionTwo;		
 		this.result = result;
@@ -61,8 +61,9 @@ public class ThreeAddressStatement extends IntermediateCodeStatement {
 
 	@Override
 	public String toString() {
-		return instruction.toString() + " " + expressionOne.toString() + " " 
-			+ expressionTwo.toString() + " " + result.toString();
+		return label.toString() + ": " + instruction.toString() 
+			+ " " + expressionOne.toString() + " "+ expressionTwo.toString() 
+			+ " " + result.toString();
 	}
 
 }
