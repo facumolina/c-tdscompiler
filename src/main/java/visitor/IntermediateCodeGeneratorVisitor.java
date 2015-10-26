@@ -287,7 +287,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 
 		// Set the correct label number to the first jump
 		labelToJump.setNumber(amountOfStatements()+1); 
-		
+
 		// Jump to the comparation for cycle again
 		Label afterBlockLabel = new Label(amountOfStatements());
 		Label toJumpAfterBlock = new Label(beforeEvaluateExpression); 
@@ -556,7 +556,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a var array location
 	 */
 	public Location visit(VarArrayLocation loc) {
-		return null;
+		return loc;
 	}
 
 	/**
