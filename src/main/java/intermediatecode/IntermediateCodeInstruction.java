@@ -22,6 +22,8 @@ public enum IntermediateCodeInstruction {
 	NOT,			// Negator
 	JUMP,			// Jump
 	JUMPF,			// Jump for false
+	PUSH,			// Push arguments
+	CALL,			// Call
 	ASSIGN;			// Assignment
 
 	@Override
@@ -61,6 +63,10 @@ public enum IntermediateCodeInstruction {
 				return "JUMP";
 			case JUMPF:
 				return "JUMPF";
+			case PUSH:
+				return "PUSH";
+			case CALL:
+				return "CALL";
 			case ASSIGN:
 				return "ASSIGN";
 		}

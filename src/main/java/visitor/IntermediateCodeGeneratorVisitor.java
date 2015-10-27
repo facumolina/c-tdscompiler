@@ -333,6 +333,11 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit break statement
 	 */
 	public Location visit(BreakStatement stmt) {
+		Label label = new Label(amountOfStatements());
+		Label labelToJump = new Label(0);
+		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,label,labelToJump);
+		intermediateCodeStatements.add(jumpICStmt);
+		statementsCounter++;
 		return null;
 	}
 
@@ -560,11 +565,29 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	}
 
 	/**
-	 * Visit method call calculating the values for each arguments
-	 * and accepting of the declaration
+	 * Visit method call accepting each argument
 	 */
 	public Location visit(MethodCall call) {
-		return null;
+		VarLocation temporalLocation;
+		IntermediateCodeStatement pushICStmt;
+		for (Expression argument : call.getArguments()) {
+			if (argument instanceof Literal) {
+				// The argument is a literal, so not need a location
+				pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),argument);
+			} else {
+				// The argument is not a literal, so need a location
+				temporalLocation = (VarLocation)argument.accept(this);
+				pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),temporalLocation);
+			}
+			intermediateCodeStatements.add(pushICStmt);
+			statementsCounter++;
+		}
+		temporalLocation = new VarLocation(getTempVarName(),call.getLineNumber(),call.getColumnNumber());
+		VarLocation methodLocation = new VarLocation(call.getDeclaration().getId(),call.getLineNumber(),call.getColumnNumber());
+		IntermediateCodeStatement callICStmt = new TwoAddressStatement(IntermediateCodeInstruction.CALL,new Label(statementsCounter),methodLocation,temporalLocation);
+		intermediateCodeStatements.add(callICStmt);
+		statementsCounter++;
+		return temporalLocation;
 	}
 
 	/**
