@@ -11,6 +11,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	private LinkedList<IntermediateCodeStatement> intermediateCodeStatements;			// Errors
 	private int temporalVarsCounter;
 	private int statementsCounter;
+	private int offset;
 
 	/**
 	 * Constructor
@@ -19,6 +20,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		intermediateCodeStatements = new LinkedList<IntermediateCodeStatement>();
 		temporalVarsCounter = 0;
 		statementsCounter = 0;
+		offset = 0;
 	}
 
 	/**
@@ -35,6 +37,14 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 */
 	public int amountOfStatements() {
 		return statementsCounter;
+	}
+
+	/**
+	 * Get next offset
+	 */
+	private int getNextOffset() {
+		offset -= 4;
+		return offset;
 	}
 
 	/**
@@ -58,6 +68,10 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a class declaration accepting each method
 	 */
 	public Location visit(ClassDeclaration decl) {
+		for (FieldDeclaration fieldDeclaration: decl.getFieldDeclarations()) {
+			fieldDeclaration.setIsGlobal(true);
+			fieldDeclaration.accept(this);
+		}
 		for (MethodDeclaration methodDeclaration : decl.getMethodDeclarations()) {
 			methodDeclaration.accept(this);
 		}
@@ -68,17 +82,59 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a field declaration 
 	 */
 	public Location visit(FieldDeclaration decl) {
+		for (DeclarationIdentifier d : decl.getListIds()) {
+				d.setIsGlobal(decl.isGlobal());
+				d.accept(this);
+		} 
 		return null;
 	}
 
 	/**
-	 * Visit a method declaration, accepting the block only if the method
-	 * is the main method 
+	 * Visit a method declaration creating the label and accepting the block 
 	 */
 	public Location visit(MethodDeclaration decl) {
-		if (decl.getId().equals("main")) {
-		 	decl.getBlock().accept(this);
+		
+		if (!decl.isExtern()) {
+	
+			// The method is not extern
+			// Create the instruction for init the label
+			VarLocation methodLocation = new VarLocation(decl.getId(),decl.getLineNumber(),decl.getColumnNumber());
+			IntermediateCodeStatement initMLICStmt = new OneAddressStatement(IntermediateCodeInstruction.INITML,new Label(statementsCounter),methodLocation);
+			intermediateCodeStatements.add(initMLICStmt);
+			statementsCounter++;
+
+			// Set offset for each argument
+			int argumentOffset = 8;
+			for (Argument arg : decl.getArguments()) {
+				arg.getDeclaration().setOffset(argumentOffset);
+				argumentOffset += 4;
+			}
+
+			// Create the instruction for reserve space for local and temporal variables
+			VarLocation temporalLocation = new VarLocation("amount",decl.getLineNumber(),decl.getColumnNumber());
+			temporalLocation.setType(Type.INT); 
+			IntermediateCodeStatement reserveICStmt = new OneAddressStatement(IntermediateCodeInstruction.RESERVE,new Label(statementsCounter),temporalLocation);
+			intermediateCodeStatements.add(reserveICStmt);
+			statementsCounter++;
+
+			int currentTemporalAmount = temporalVarsCounter;
+
+			// Accept the block
+			decl.getBlock().accept(this);
+
+			// Set the correct number of local and temporal for reserve space
+			IntLiteral amount = new IntLiteral(decl.getAmountOfFieldDeclarations()
+				+ (temporalVarsCounter - currentTemporalAmount));
+			DeclarationIdentifier declIdentifier = new DeclarationIdentifier("amount",decl.getLineNumber(),decl.getColumnNumber());
+			declIdentifier.setType(Type.INT);
+			temporalLocation.setDeclaration(declIdentifier);
+			temporalLocation.setValue(amount);
+
+			// Restore the offset for the next method declaration
+			offset = 0;
+		
 		}
+
 		return null;
  	}
 
@@ -93,7 +149,21 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a declaration identifier
 	 */
 	public Location visit(DeclarationIdentifier ident) {
-		return null;
+		if (ident.isGlobal()) {
+			// The declaration is global
+			return null;
+		} else {
+			// The declaration is local, so set the offset
+			ident.setOffset(getNextOffset());
+			//VarLocation temporalLocation = new VarLocation(ident.getId(),ident.getLineNumber(),ident.getColumnNumber());
+			//temporalLocation.setType(ident.getType()); 
+			//IntermediateCodeStatement reserveICStmt = new OneAddressStatement(IntermediateCodeInstruction.RESERVE,new Label(statementsCounter),temporalLocation);
+			//intermediateCodeStatements.add(reserveICStmt);
+			//statementsCounter++;
+			//return temporalLocation;
+			return null;
+		}
+		
 	}
  	
 	/**
@@ -103,6 +173,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		IntermediateCodeStatement assignICStmt;
 		String tempVarName;
 		VarLocation temporalLocation;
+		DeclarationIdentifier declIdentifier;
 		VarLocation expressionLocation;
 		switch (stmt.getOperator()) {
 			case INCREMENT:
@@ -112,7 +183,9 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 				IntermediateCodeStatement addICStmt;
 				tempVarName = getTempVarName();
 				temporalLocation = new VarLocation(tempVarName,stmt.getLineNumber(),stmt.getColumnNumber());
-				temporalLocation.setDeclaration(new DeclarationIdentifier(tempVarName,stmt.getLineNumber(),stmt.getColumnNumber()));
+				declIdentifier = new DeclarationIdentifier(tempVarName,stmt.getLineNumber(),stmt.getColumnNumber());
+				declIdentifier.setOffset(getNextOffset());
+				temporalLocation.setDeclaration(declIdentifier);
 				expressionLocation = (VarLocation)stmt.getExpression().accept(this);
 				if (stmt.getLocation().getType().equals(Type.INT)) {
 					// The location type is int
@@ -148,7 +221,9 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 				IntermediateCodeStatement subICStmt;
 				tempVarName = getTempVarName();
 				temporalLocation = new VarLocation(tempVarName,stmt.getLineNumber(),stmt.getColumnNumber());
-				temporalLocation.setDeclaration(new DeclarationIdentifier(tempVarName,stmt.getLineNumber(),stmt.getColumnNumber()));
+				declIdentifier = new DeclarationIdentifier(tempVarName,stmt.getLineNumber(),stmt.getColumnNumber());
+				declIdentifier.setOffset(getNextOffset());
+				temporalLocation.setDeclaration(declIdentifier);
 				expressionLocation = (VarLocation)stmt.getExpression().accept(this);
 				if (stmt.getLocation().getType().equals(Type.INT)) {
 					// The location type is int
@@ -205,11 +280,20 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a return statement accepting the return expression 
 	 */
 	public Location visit(ReturnStatement stmt) {
+		IntermediateCodeStatement returnICStmt;
+		VarLocation temporalLocation;
 		if (stmt.hasExpression()) {
-			return stmt.getExpression().accept(this);
+			// The return statement has an expression
+			temporalLocation =  (VarLocation)stmt.getExpression().accept(this);
+			returnICStmt = new OneAddressStatement(IntermediateCodeInstruction.RET,new Label(statementsCounter),temporalLocation);
 		} else {
-			return null;
-		}
+			// The return statement has not an expression
+			returnICStmt = new IntermediateCodeStatement(IntermediateCodeInstruction.RET,new Label(statementsCounter));
+			temporalLocation = null;
+		} 
+		intermediateCodeStatements.add(returnICStmt);
+		statementsCounter++;
+		return temporalLocation;
 	}
 
 	/**
@@ -375,7 +459,9 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		}
 		String tempVarName = getTempVarName();
 		VarLocation temporalLocation = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
-		temporalLocation.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
+		DeclarationIdentifier declIdentifier = new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+		declIdentifier.setOffset(getNextOffset());
+		temporalLocation.setDeclaration(declIdentifier);
 		temporalLocation.getDeclaration().setType(expr.getType());
 		
 		exprICStmt = new ThreeAddressStatement(instruction,new Label(statementsCounter),leftExpression,rightExpression,temporalLocation);
@@ -582,18 +668,42 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 			intermediateCodeStatements.add(pushICStmt);
 			statementsCounter++;
 		}
-		temporalLocation = new VarLocation(getTempVarName(),call.getLineNumber(),call.getColumnNumber());
+
 		VarLocation methodLocation = new VarLocation(call.getDeclaration().getId(),call.getLineNumber(),call.getColumnNumber());
-		IntermediateCodeStatement callICStmt = new TwoAddressStatement(IntermediateCodeInstruction.CALL,new Label(statementsCounter),methodLocation,temporalLocation);
-		intermediateCodeStatements.add(callICStmt);
-		statementsCounter++;
-		return temporalLocation;
+
+		if (call.getDeclaration().getType().equals(Type.VOID)) {
+			// The method type is void
+			IntermediateCodeStatement callICStmt = new OneAddressStatement(IntermediateCodeInstruction.CALL,new Label(statementsCounter),methodLocation);
+			intermediateCodeStatements.add(callICStmt);
+			statementsCounter++;
+			return null;
+
+		} else {
+			
+			// The method type is not void, so need a temporal location for
+			// store the result
+			String tempVarName = getTempVarName();
+			temporalLocation = new VarLocation(tempVarName,call.getLineNumber(),call.getColumnNumber());
+			DeclarationIdentifier declIdentifier = new DeclarationIdentifier(tempVarName,call.getLineNumber(),call.getColumnNumber());
+			declIdentifier.setOffset(getNextOffset());
+			temporalLocation.setDeclaration(declIdentifier);
+			IntermediateCodeStatement callICStmt = new TwoAddressStatement(IntermediateCodeInstruction.CALL,new Label(statementsCounter),methodLocation,temporalLocation);
+			intermediateCodeStatements.add(callICStmt);
+			statementsCounter++;
+			return temporalLocation;
+		
+		}
+
 	}
 
 	/**
-	 * Visit a block accepting only each statement 
+	 * Visit a block accepting each field declaration and each statement
 	 */
 	public Location visit(Block block) {
+		for (FieldDeclaration fieldDeclaration : block.getFieldDeclarations()) {
+			fieldDeclaration.setIsGlobal(false);
+			fieldDeclaration.accept(this);
+		}
 		for (Statement statement : block.getStatements()) {
 			statement.accept(this);
 		}

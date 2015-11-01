@@ -21,7 +21,10 @@ public enum IntermediateCodeInstruction {
 	OR,				// Disyunction
 	NOT,			// Negator
 	JUMP,			// Jump
+	RESERVE,		// Reserve space
 	JUMPF,			// Jump for false
+	INITML,			// Init method label
+	RET,			// Return
 	PUSH,			// Push arguments
 	CALL,			// Call
 	ASSIGN;			// Assignment
@@ -63,6 +66,12 @@ public enum IntermediateCodeInstruction {
 				return "JUMP";
 			case JUMPF:
 				return "JUMPF";
+			case RESERVE:
+				return "RESERVE";
+			case INITML:
+				return "INITML";
+			case RET:
+				return "RET";
 			case PUSH:
 				return "PUSH";
 			case CALL:
