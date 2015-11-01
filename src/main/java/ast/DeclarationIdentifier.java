@@ -9,7 +9,9 @@ public class DeclarationIdentifier extends Identifiable {
 	private Integer capacity; 					// Capacity used if the declaration identifier is the identifier of an array
 	private Type type;							// Type stored 
 	private ArrayList<Literal> listOfValues;	// List of values. 
-	
+	private boolean global;						// Is global
+	private int offset;							// Offset
+
 	/**
 	 * Constructor for declarations identifiers: id
 	 */
@@ -19,6 +21,7 @@ public class DeclarationIdentifier extends Identifiable {
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
 		listOfValues = new ArrayList<Literal>(1);
+		offset = 0;
 	}
 
 	/**
@@ -30,6 +33,7 @@ public class DeclarationIdentifier extends Identifiable {
 		this.setLineNumber(line);
 		this.setColumnNumber(column);
 		listOfValues = new ArrayList<Literal>(n);
+		offset = 0;
 	}
 
 	/**
@@ -66,6 +70,34 @@ public class DeclarationIdentifier extends Identifiable {
 		} else {
 			listOfValues.add(0,t.getDefaultValue());
 		}
+	}
+	
+	/**
+	 * Get the offset
+	 */
+	public int getOffset() {
+		return offset;
+	}
+
+	/**
+	 * Set the offset
+	 */
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
+
+	/**
+	 * Return true is the declaration is global
+	 */
+	public boolean isGlobal() {
+		return global;
+	}
+
+	/**
+	 * Set is global
+	 */
+	public void setIsGlobal(boolean value) {
+		global = value;
 	}
 	
 	/**

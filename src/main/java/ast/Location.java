@@ -6,7 +6,7 @@ public abstract class Location extends Expression {
 	
 	protected String id; 					// Location id
 	protected DeclarationIdentifier decl; 	// Declaration associated 
-	
+
 	/**
 	 * Get the id
 	 */
@@ -34,6 +34,20 @@ public abstract class Location extends Expression {
 	public void setDeclaration(DeclarationIdentifier decl) {
 		this.decl = decl;
 		setType(decl.getType());
+	}
+
+	/**
+	 * Get the offset
+	 */
+	public int getOffset() {
+		return decl.getOffset();
+	}
+
+	/**
+	 * Set the offset
+	 */
+	public void setOffset(int offset) {
+		decl.setOffset(offset);
 	}
 
 	/**

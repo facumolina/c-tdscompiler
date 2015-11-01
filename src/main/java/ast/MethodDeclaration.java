@@ -13,6 +13,7 @@ public class MethodDeclaration extends Identifiable {
 	private boolean isExtern;					// IsExtern
 	private Type type;							// Return type
 	private Literal value;						// Return value
+	
 	/**
 	 * Constructor
 	 */
@@ -139,6 +140,17 @@ public class MethodDeclaration extends Identifiable {
 			return found;
 		}
 		
+	}
+
+	/**
+	 * Get amount of field declarations
+	 */
+	public int getAmountOfFieldDeclarations() {
+		int amount = 0;
+		for (FieldDeclaration field : block.getFieldDeclarations()) {
+			amount += field.getListIds().size();
+		}
+		return amount;
 	}
 
 	/**

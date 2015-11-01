@@ -10,7 +10,8 @@ public class FieldDeclaration extends AST {
 
 	private List<DeclarationIdentifier> identifiersList;	// Identifiers list
 	private Type type; 										// Type
-
+	private boolean global;									// Is global
+	
 	/**
 	 * Constructor with a given type and list of identifiers.
 	 */
@@ -41,6 +42,20 @@ public class FieldDeclaration extends AST {
 	 */
 	public void setType(Type t) {
 		type = t;
+	}
+
+	/**
+	 * Return true if is global
+	 */
+	public boolean isGlobal() {
+		return global;
+	}
+
+	/**
+	 * Set the value of is global
+	 */
+	public void setIsGlobal(boolean value) {
+		global = value;
 	}
 
 	@Override
