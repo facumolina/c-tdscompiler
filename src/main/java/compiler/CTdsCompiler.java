@@ -11,7 +11,8 @@ public class CTdsCompiler {
 	private static CTdsParser parser;			// Parser
 	private static LinkedList<String> errors; 	// Errors
 	private static LinkedList<IntermediateCodeStatement> iCodeStatements; // Intermediate code statements
-	
+	private static int labelIndex;
+
 	/* 
  	 * Main method for run the compiler with an input file 
  	 */
@@ -21,6 +22,7 @@ public class CTdsCompiler {
 
  			errors = new LinkedList<String>();
  			iCodeStatements = new LinkedList<IntermediateCodeStatement>();
+ 			labelIndex = -1;
 
  			// Read file
  			FileReader file = new FileReader(argv[0]);
@@ -63,6 +65,14 @@ public class CTdsCompiler {
  			System.out.println("Compilation failed");
  		}
  		
+ 	}
+
+ 	/**
+ 	 * Generate a unique label
+ 	 */
+ 	private static String generateLabel() {
+ 		labelIndex += 1;
+ 		return "label"+labelIndex;
  	}
 
  	/**
@@ -114,7 +124,7 @@ public class CTdsCompiler {
 			
 			for (IntermediateCodeStatement intermediateCodeStmt: iCodeStatements) {
 
-				// Generate the assemble for each intermediate code statement
+				// Generate the assembler code for each intermediate code statement
 				writer.print(generateCodeForStatement(intermediateCodeStmt));
 
 			}
@@ -142,8 +152,16 @@ public class CTdsCompiler {
  				return generateCodeForAssign((TwoAddressStatement)stmt);
  			case CALL:
  				return generateCodeForCall(stmt);
+ 			case EQ:
+ 				return generateCodeForEq((ThreeAddressStatement)stmt);
  			case INITML: 
  				return generateCodeForInitMl((OneAddressStatement)stmt);
+ 			case JUMP:
+ 				return generateCodeForJump((OneAddressStatement)stmt);
+ 			case JUMPF:
+ 				return generateCodeForJumpF((OneAddressStatement)stmt);
+ 			case LABEL:
+ 				return generateCodeForLabel((OneAddressStatement)stmt);
  			case PUSH:
  				return generateCodeForPush((OneAddressStatement)stmt);
  			case RESERVE:
@@ -251,6 +269,55 @@ public class CTdsCompiler {
  	}
 
  	/**
+ 	 * Generate the assembler code for the statement with instruction eq
+ 	 */
+ 	public static String generateCodeForEq(ThreeAddressStatement stmt) {
+ 		Expression expression1 = stmt.getExpressionOne();
+ 		Expression expression2 = stmt.getExpressionTwo();
+
+ 		String mov1 = "\t"+"movl ";
+ 		String cmp = "\t"+"cmp ";
+ 		
+ 		if (expression1 instanceof Literal) {
+ 			// The expression one is a literal
+ 			mov1 += "$"+expression1.toString()+", %ebx"+"\n";
+ 			if (expression2 instanceof Literal) {
+ 				// The expression two is a literal
+ 				cmp += "$"+expression2.toString()+", %ebx"+"\n";
+ 			} else {
+ 				// The expression two is not a literal
+ 				Location location2 = (Location)expression2;
+ 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
+ 			}
+ 		} else {
+ 			Location location1 = (Location)expression1;
+ 			mov1 += location1.getOffset()+"(%ebp), %ebx"+"\n"; 
+ 			if (expression2 instanceof Literal) {
+ 				// The expression two is a literal
+ 				cmp += "$"+expression2.toString()+", %ebx"+"\n"; 
+ 			} else {
+ 				// The expression two is not a literal
+ 				Location location2 = (Location)expression2;
+ 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
+ 			}
+ 		}
+ 		Location result = (Location)stmt.getResult();
+
+ 		String jeLabelName = generateLabel();
+ 		String endLabelName = generateLabel();
+
+		String je = "\t"+"je "+jeLabelName+"\n";
+		String movFalse = "\t"+"movl $0, "+result.getOffset()+"(%ebp)"+"\n";
+		String jend = "\t"+"jmp "+endLabelName+"\n";
+		String jeLabel = jeLabelName+":\n";
+		String movTrue = "\t"+"movl $1, "+result.getOffset()+"(%ebp)"+"\n";
+ 		String endLabel = endLabelName+":\n";
+
+ 		return mov1+cmp+je+movFalse+jend+jeLabel+movTrue+endLabel;
+
+ 	}
+
+ 	/**
  	 * Generate the assembler code for the statement with instruction initml
  	 */
  	private static String generateCodeForInitMl(OneAddressStatement stmt) {
@@ -261,6 +328,37 @@ public class CTdsCompiler {
  		String push = "\t"+"pushl %ebp"+"\n";
  		String mov = "\t"+"movl %esp, %ebp"+"\n";
  		return global+type+label+push+mov;
+ 	}
+
+ 	/**
+ 	 * Generate the assembler code for the statement with instruction jump
+ 	 */
+ 	private static String generateCodeForJump(OneAddressStatement stmt) {
+ 		Label toJump = stmt.getLabelToJump();
+ 		String jmp = "\t"+"jmp "+toJump.toString()+"\n";
+ 		return jmp;
+ 	}
+
+ 	/**
+ 	 * Generate the assembler code for the statement with instruction jumpf
+ 	 */
+ 	private static String generateCodeForJumpF(OneAddressStatement stmt) {
+ 		Location loc = (Location)stmt.getExpression();
+ 		Label toJump = stmt.getLabelToJump();
+
+ 		String cmp = "\t"+"cmp $0, "+loc.getOffset()+"(%ebp)"+"\n";
+ 		String je = "\t"+"je "+toJump.toString()+"\n";
+
+ 		return cmp + je;
+ 	}
+
+ 	/**
+ 	 * Generate the assembler code for the statement with instruction label
+ 	 */
+ 	private static String generateCodeForLabel(OneAddressStatement stmt) {
+ 		Label toJump = stmt.getLabelToJump();
+ 		String label = toJump.toString()+":\n";
+ 		return label;
  	}
 
  	/**

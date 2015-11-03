@@ -317,8 +317,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		stmt.getIfBlock().accept(this);
 		
 		if (stmt.hasElseBlock()) {
-			// Set the correct label number to jump
-			labelToJump.setNumber(amountOfStatements()+1);
+			
 			// Add the jump instruction at the end of the if block
 			Label afterIfLabel = new Label(amountOfStatements());
 			Label toJumpAfterIf = new Label(0); 
@@ -326,12 +325,30 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 			intermediateCodeStatements.add(jumpICStmt);
 			statementsCounter++; 
 
+			// Set the correct label number to jump
+			labelToJump.setNumber(amountOfStatements()+1);
+
+			// Add a label instruction
+			IntermediateCodeStatement labelICStmt = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()+1));
+			intermediateCodeStatements.add(labelICStmt);
+			statementsCounter++;
+
 			stmt.getElseBlock().accept(this);
 			// Set the correct label number to jump after if
 			toJumpAfterIf.setNumber(amountOfStatements());
-		
+
+			// Add a label instruction
+			IntermediateCodeStatement labelICStmt2 = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()));
+			intermediateCodeStatements.add(labelICStmt2);
+			statementsCounter++;
+
 		} else {
-			// Set the correct label number to jump
+
+			// Add a label instruction and set the correct label number to jump
+			IntermediateCodeStatement labelICStmt = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()+1));
+			intermediateCodeStatements.add(labelICStmt);
+			statementsCounter++; 
+
 			labelToJump.setNumber(amountOfStatements());
 		} 
 		return null;

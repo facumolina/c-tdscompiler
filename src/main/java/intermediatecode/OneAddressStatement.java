@@ -56,7 +56,7 @@ public class OneAddressStatement extends IntermediateCodeStatement {
 	/**
 	 * Get the label to jump
 	 */
-	public Label getLebelToJump() {
+	public Label getLabelToJump() {
 		return labelToJump;
 	}
 

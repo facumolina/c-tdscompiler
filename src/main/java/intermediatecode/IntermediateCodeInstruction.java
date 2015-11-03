@@ -24,6 +24,7 @@ public enum IntermediateCodeInstruction {
 	RESERVE,		// Reserve space
 	JUMPF,			// Jump for false
 	INITML,			// Init method label
+	LABEL,			// Label
 	RET,			// Return
 	PUSH,			// Push arguments
 	CALL,			// Call
@@ -70,6 +71,8 @@ public enum IntermediateCodeInstruction {
 				return "RESERVE";
 			case INITML:
 				return "INITML";
+			case LABEL:
+				return "LABEL";
 			case RET:
 				return "RET";
 			case PUSH:
