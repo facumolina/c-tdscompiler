@@ -361,8 +361,13 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		
 		VarLocation temporalLocation = (VarLocation)stmt.getInitialAssign().accept(this);
 
-		int beforeEvaluateExpression = amountOfStatements();
+		// Add a label instruction 
+		IntermediateCodeStatement labelICStmt = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()+1));
+		intermediateCodeStatements.add(labelICStmt);
+		statementsCounter++;
 
+		int beforeEvaluateExpression = amountOfStatements();
+		
 		// Create an expression for compare if the location of
 		// initial variable is less or equal than the expression
 		Expression comparationExpression = new BinOpExpr(temporalLocation,BinOpType.LEQ,stmt.getConditionExpression(),0,0);
@@ -386,15 +391,19 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		intermediateCodeStatements.add(addICStmt);
 		statementsCounter++;
 
-		// Set the correct label number to the first jump
-		labelToJump.setNumber(amountOfStatements()+1); 
-
 		// Jump to the comparation for cycle again
 		Label afterBlockLabel = new Label(amountOfStatements());
 		Label toJumpAfterBlock = new Label(beforeEvaluateExpression); 
 		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterBlockLabel,toJumpAfterBlock);
 		intermediateCodeStatements.add(jumpICStmt);
 		statementsCounter++; 
+
+		// Add a label instruction and set the correct label number to jump
+		IntermediateCodeStatement labelICStmt2 = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()+1));
+		intermediateCodeStatements.add(labelICStmt2);
+		statementsCounter++;
+
+		labelToJump.setNumber(amountOfStatements()); 
 
 		return null;
 	}
@@ -485,53 +494,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		intermediateCodeStatements.add(exprICStmt);
 		statementsCounter++;
 
-		// Consider the cases in which is needed more than one intermediate
-		// code statement
-
-		if (expr.getOperator()==BinOpType.NEQ) {
-			// The binary operator is !=. So add an instruction for negate, because the exprICStmt
-			// was setted with the EQ instruction.
-
-			tempVarName = getTempVarName();
-			VarLocation temporalLocation2 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
-			temporalLocation2.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
-			temporalLocation2.getDeclaration().setType(expr.getType());
-
-			IntermediateCodeStatement negICStmt = new TwoAddressStatement(IntermediateCodeInstruction.NOT,new Label(statementsCounter),temporalLocation,temporalLocation2);
-			intermediateCodeStatements.add(negICStmt);
-			statementsCounter++;
-			return temporalLocation2;
-		
-		} else if ((expr.getOperator()==BinOpType.LEQ) || (expr.getOperator()==BinOpType.GEQ)) {
-			// The binary operator is <= or >=. So add one instruction for equality and another
-			// instruction for make an or, between the equality result and the result of
-			// exprICStmt
-
-			tempVarName = getTempVarName();
-			VarLocation temporalLocation2 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
-			temporalLocation2.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
-			temporalLocation2.getDeclaration().setType(expr.getType());
-
-			IntermediateCodeStatement eqICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.EQ,new Label(statementsCounter),leftExpression,rightExpression,temporalLocation2); 
-			intermediateCodeStatements.add(eqICStmt);
-			statementsCounter++;
-
-			tempVarName = getTempVarName();
-			VarLocation temporalLocation3 = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
-			temporalLocation3.setDeclaration(new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber()));
-			temporalLocation3.getDeclaration().setType(expr.getType());
-
-			IntermediateCodeStatement orICStmt = new ThreeAddressStatement(IntermediateCodeInstruction.OR,new Label(statementsCounter),temporalLocation,temporalLocation2,temporalLocation3); 
-			intermediateCodeStatements.add(orICStmt);
-			statementsCounter++;
-
-			return temporalLocation3;
-		
-		} else {
-			// Not need more instructions
-			return temporalLocation;
-		}
-		
+		return temporalLocation;
 	}
 
 	/**
@@ -568,11 +531,11 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 			case LE:
 				return IntermediateCodeInstruction.LESS;		
 			case LEQ:
-				return IntermediateCodeInstruction.LESS;
+				return IntermediateCodeInstruction.LESSEQ;
 			case GE:
 				return IntermediateCodeInstruction.GREAT;		
 			case GEQ:
-				return IntermediateCodeInstruction.GREAT;
+				return IntermediateCodeInstruction.GREATEQ;
 			case CEQ:
 				return IntermediateCodeInstruction.EQ;
 			case NEQ:

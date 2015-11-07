@@ -13,8 +13,10 @@ public enum IntermediateCodeInstruction {
 	DIVI, 			// Integer division
 	DIVF,			// Float division
 	MOD,			// Mod
-	LESS,			// Less 
+	LESS,			// Less
+	LESSEQ,			// Less or equal 
 	GREAT,			// Great
+	GREATEQ,		// Great or equal
 	EQ,				// Equality
 	NEQ,			// Non equality
 	AND,			// Conjunction
@@ -53,8 +55,12 @@ public enum IntermediateCodeInstruction {
 				return "MOD";
 			case LESS:
 				return "LESS";
+			case LESSEQ:
+				return "LESSEQ";
 			case GREAT:
 				return "GREAT";
+			case GREATEQ:
+				return "GREATEQ";
 			case EQ:
 				return "EQ";
 			case AND:
