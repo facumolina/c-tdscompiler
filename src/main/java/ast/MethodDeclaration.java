@@ -148,7 +148,13 @@ public class MethodDeclaration extends Identifiable {
 	public int getAmountOfFieldDeclarations() {
 		int amount = 0;
 		for (FieldDeclaration field : block.getFieldDeclarations()) {
-			amount += field.getListIds().size();
+			for (DeclarationIdentifier decl: field.getListIds()) {
+				if (decl.isArrayDeclarationId()) {
+					amount += decl.getCapacity();
+				} else {
+					amount++;
+				}
+			}
 		}
 		return amount;
 	}

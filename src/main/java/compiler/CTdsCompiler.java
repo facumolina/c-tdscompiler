@@ -148,6 +148,8 @@ public class CTdsCompiler {
  		switch (instruction) {
  			case ADDI:
  				return generateCodeForIntegerArithmeticalOperation((ThreeAddressStatement)stmt,"addl");
+ 			case AND:
+ 				return generateCodeForLogicalOperation((ThreeAddressStatement)stmt,"andl");
  			case ASSIGN:
  				return generateCodeForAssign((TwoAddressStatement)stmt);
  			case CALL:
@@ -179,6 +181,10 @@ public class CTdsCompiler {
  				return generateCodeForIntegerArithmeticalOperation((ThreeAddressStatement)stmt,"imull");
  			case NEQ:
  				return generateCodeForRelationalOperation((ThreeAddressStatement)stmt,"jne");
+ 			case NOT:
+ 				return generateCodeForNot((TwoAddressStatement)stmt);
+ 			case OR:
+ 				return generateCodeForLogicalOperation((ThreeAddressStatement)stmt,"orl");
  			case PUSH:
  				return generateCodeForPush((OneAddressStatement)stmt);
  			case RESERVE:
@@ -186,7 +192,7 @@ public class CTdsCompiler {
  			case RET:
  				return generateCodeForRet(stmt);
  			case SUBI:
- 				return generateCodeForIntegerArithmeticalOperation((ThreeAddressStatement)stmt,"subl");
+ 				return generateCodeForIntegerArithmeticalOperation(stmt,"subl");
  			default: return "\t"+"def\n";
  		}
 
@@ -197,8 +203,9 @@ public class CTdsCompiler {
  	 */
  	private static String generateCodeForAssign(TwoAddressStatement stmt) {
  		Expression expression = stmt.getExpression();
- 		String movl = "\t"+"movl ";
+ 		String movl = "";
  		if (expression instanceof Literal) {
+ 			movl = "\t"+"movl ";
  			// The expression is a literal
  			if (expression instanceof IntLiteral) {
  				// The expression is an int literal
@@ -206,18 +213,66 @@ public class CTdsCompiler {
  				movl += "$"+ intLiteral.getIntegerValue()+", ";
  			} else if (expression instanceof BooleanLiteral) {
  				// The expression is a boolean literal
+ 				BooleanLiteral boolLiteral = (BooleanLiteral)expression;
+ 				if (boolLiteral.getBooleanValue()) {
+ 					// Is true
+ 					movl += "$1, ";
+ 				} else {
+ 					// Is false
+ 					movl += "$0, ";
+ 				}
  			} else {
  				// The expression is a float literal
  			}	
  		} else {
  			// The expression value is stored in a location
  			Location loc = (Location)expression;
- 			movl += loc.getOffset()+"(%ebp), %ebx"+"\n";
- 			movl += "\t"+"movl %ebx, ";
+ 			if (loc instanceof VarLocation) {
+ 				// The location is a var location
+ 				movl = "\t"+"movl "+loc.getOffset()+"(%ebp), %ebx"+"\n";
+ 				movl += "\t"+"movl %ebx, ";
+ 			} else {
+ 				// The location is a var array location
+ 				VarArrayLocation arrayLocation = (VarArrayLocation)loc;
+ 				Expression index = arrayLocation.getExpression();
+ 				String movIndex = "\t"+"movl ";
+ 				if (index instanceof Literal) {
+ 					// The index is a literal
+ 					movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
+ 				} else {
+ 					// The index is stored in a location
+ 					movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
+ 				}
+ 				movl = movIndex;
+ 				Integer arraySize = arrayLocation.getDeclaration().getCapacity();
+ 				Integer correctBase = -1*(loc.getOffset()-(4*(arraySize-1)));
+ 				movl += "\t"+"movl "+correctBase+"(%ebp,%ecx,4), %ebx"+"\n";
+ 				movl += "\t"+"movl %ebx, ";
+ 			}	
+ 			
  		}
  		Location result = (Location)stmt.getResult();
- 		movl += result.getOffset()+"(%ebp)"+"\n";
- 		return movl;
+ 		if (result instanceof VarLocation) {
+ 			// The result is a var location
+ 			movl += result.getOffset()+"(%ebp)"+"\n";
+ 			return movl;
+ 		} else {
+ 			// The result is a var array location
+ 			VarArrayLocation arrayLocation = (VarArrayLocation)result;
+ 			Expression index = arrayLocation.getExpression();
+ 			String movIndex = "\t"+"movl ";
+ 			if (index instanceof Literal) {
+ 				// The index is a literal
+ 				movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
+ 			} else {
+ 				// The index is stored in a location
+ 				movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
+ 			}
+ 			Integer arraySize = arrayLocation.getDeclaration().getCapacity();
+ 			Integer correctBase = -1*(result.getOffset()-(4*(arraySize-1)));
+ 			movl += correctBase+"(%ebp,%ecx,4)"+"\n";
+ 			return movIndex+movl; 
+ 		}
  	}
 
  	/**
@@ -231,7 +286,6 @@ public class CTdsCompiler {
  			loc = (Location)((OneAddressStatement)stmt).getExpression();
 			call = "\tcall "+loc.getId()+"\n";
  			return call;
-
  		} else {
 			// The call stores the result in the eax register
 			loc = (Location)((TwoAddressStatement)stmt).getExpression();
@@ -244,101 +298,97 @@ public class CTdsCompiler {
  	}
 
  	/**
- 	 * Generate the assembler code for the statement with instruction EQ
+ 	 * Generate the assembler code for a statement with an instruction for a logical
+ 	 * operation (AND, OR) 
  	 */
- 	public static String generateCodeForEq(ThreeAddressStatement stmt) {
+ 	private static String generateCodeForLogicalOperation(ThreeAddressStatement stmt,String instructionName) {
  		Expression expression1 = stmt.getExpressionOne();
  		Expression expression2 = stmt.getExpressionTwo();
 
- 		String mov1 = "\t"+"movl ";
- 		String cmp = "\t"+"cmp ";
- 		
+ 		String stringExpr1;
+ 		String stringExpr2;
+ 		BooleanLiteral boolLiteral;
  		if (expression1 instanceof Literal) {
  			// The expression one is a literal
- 			mov1 += "$"+expression1.toString()+", %ebx"+"\n";
- 			if (expression2 instanceof Literal) {
- 				// The expression two is a literal
- 				cmp += "$"+expression2.toString()+", %ebx"+"\n";
+ 			boolLiteral = (BooleanLiteral)expression1;
+ 			if (boolLiteral.getBooleanValue()) {
+ 				stringExpr1 = "$1";
  			} else {
- 				// The expression two is not a literal
- 				Location location2 = (Location)expression2;
- 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
+ 				stringExpr1 = "$0,";
  			}
- 		} else {
- 			Location location1 = (Location)expression1;
- 			mov1 += location1.getOffset()+"(%ebp), %ebx"+"\n"; 
  			if (expression2 instanceof Literal) {
  				// The expression two is a literal
- 				cmp += "$"+expression2.toString()+", %ebx"+"\n"; 
+ 				boolLiteral = (BooleanLiteral)expression2;
+ 				if (boolLiteral.getBooleanValue()) {
+ 					stringExpr2 = "$1";
+ 				} else {
+ 					stringExpr2 = "$0";
+ 				}
+ 	
  			} else {
  				// The expression two is not a literal
  				Location location2 = (Location)expression2;
- 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
- 			}
- 		}
- 		Location result = (Location)stmt.getResult();
-
- 		String jeLabelName = generateLabel();
- 		String endLabelName = generateLabel();
-
-		String je = "\t"+"je "+jeLabelName+"\n";
-		String movFalse = "\t"+"movl $0, "+result.getOffset()+"(%ebp)"+"\n";
-		String jend = "\t"+"jmp "+endLabelName+"\n";
-		String jeLabel = jeLabelName+":\n";
-		String movTrue = "\t"+"movl $1, "+result.getOffset()+"(%ebp)"+"\n";
- 		String endLabel = endLabelName+":\n";
-
- 		return mov1+cmp+je+movFalse+jend+jeLabel+movTrue+endLabel;
-
- 	}
-
- 	/**
- 	 * Generate the assembler code for the statement with instruction GREATEQ
- 	 */
- 	private static String generateCodeForGreatEq(ThreeAddressStatement stmt) {
- 		Expression expression1 = stmt.getExpressionOne();
- 		Expression expression2 = stmt.getExpressionTwo();
-
- 		String mov1 = "\t"+"movl ";
- 		String cmp = "\t"+"cmp ";
- 		
- 		if (expression1 instanceof Literal) {
- 			// The expression one is a literal
- 			mov1 += "$"+expression1.toString()+", %ebx"+"\n";
- 			if (expression2 instanceof Literal) {
- 				// The expression two is a literal
- 				cmp += "$"+expression2.toString()+", %ebx"+"\n";
- 			} else {
- 				// The expression two is not a literal
- 				Location location2 = (Location)expression2;
- 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
+ 				stringExpr2 = location2.getOffset()+"(%ebp)";
  			}
  		} else {
  			// The expression one is not a literal
  			Location location1 = (Location)expression1;
- 			mov1 += location1.getOffset()+"(%ebp), %ebx"+"\n"; 
+ 			stringExpr1 = location1.getOffset()+"(%ebp)"; 
  			if (expression2 instanceof Literal) {
  				// The expression two is a literal
- 				cmp += "$"+expression2.toString()+", %ebx"+"\n"; 
+ 				boolLiteral = (BooleanLiteral)expression2;
+ 				if (boolLiteral.getBooleanValue()) {
+ 					stringExpr2 = "$1";
+ 				} else {
+ 					stringExpr2 = "$0";
+ 				} 
  			} else {
  				// The expression two is not a literal
  				Location location2 = (Location)expression2;
- 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
+ 				stringExpr2 = location2.getOffset()+"(%ebp)";
  			}
  		}
  		Location result = (Location)stmt.getResult();
 
- 		String jgeLabelName = generateLabel();
+ 		String mov1 = "\t"+"movl "+stringExpr1+", %ebx"+"\n";
+ 		String ins = "\t"+instructionName+" "+stringExpr2+", %ebx"+"\n";
+ 		String mov2 = "\t"+"movl %ebx, "+result.getOffset()+"(%ebp)"+"\n";
+ 		return mov1+ins+mov2;
+ 	}
+
+ 	/**
+ 	 * Generate the assembler code for a statement with the instruction NOT
+ 	 */
+ 	private static String generateCodeForNot(TwoAddressStatement stmt) {
+		Expression expr = stmt.getExpression();
+ 		String stringExpr;
+ 		if (expr instanceof Literal) {
+ 			// The expression is a literal
+ 			BooleanLiteral boolLiteral = (BooleanLiteral)expr;
+ 			if (boolLiteral.getBooleanValue()) {
+ 				stringExpr = "$1";
+ 			} else {
+ 				stringExpr = "$0";
+ 			}
+ 		} else {
+ 			// The expression two is not a literal
+ 			Location location = (Location)expr;
+ 			stringExpr = location.getOffset()+"(%ebp)";
+ 		}
+ 		Location result = (Location)stmt.getResult();
+ 		String mov1 = "\t"+"movl "+stringExpr+", %ebx"+"\n";
+ 		String not = "\t"+"notl %ebx"+"\n";
+ 		String shr = "\t"+"shr $1, %ebx"+"\n";
+ 		String jcLabelName = generateLabel();
  		String endLabelName = generateLabel();
-
-		String jge = "\t"+"jge "+jgeLabelName+"\n";
-		String movFalse = "\t"+"movl $0, "+result.getOffset()+"(%ebp)"+"\n";
-		String jend = "\t"+"jmp "+endLabelName+"\n";
-		String jgeLabel = jgeLabelName+":\n";
-		String movTrue = "\t"+"movl $1, "+result.getOffset()+"(%ebp)"+"\n";
- 		String endLabel = endLabelName+":\n";	
-
- 		return mov1+cmp+jge+movFalse+jend+jgeLabel+movTrue+endLabel;
+ 		String jc = "\t"+"jc "+jcLabelName+"\n";
+ 		String mov2 = "\t"+"movl $0, %ebx"+"\n";
+ 		String jmp = "\t"+"jmp "+endLabelName+"\n";
+ 		String label = jcLabelName+":"+"\n";
+ 		String mov3 = "\t"+"movl $1, %ebx"+"\n";
+ 		String labelEnd = endLabelName+":"+"\n";
+ 		String mov4 = "\t"+"movl %ebx, "+result.getOffset()+"(%ebp)"+"\n";
+ 		return mov1+not+shr+jc+mov2+jmp+label+mov3+labelEnd+mov4;	
  	}
 
  	/**
@@ -436,55 +486,6 @@ public class CTdsCompiler {
  	}
 
  	/**
- 	 * Generate the assembler code for the statement with instruction LESSEQ
- 	 */
- 	private static String generateCodeForLessEq(ThreeAddressStatement stmt) {
- 		Expression expression1 = stmt.getExpressionOne();
- 		Expression expression2 = stmt.getExpressionTwo();
-
- 		String mov1 = "\t"+"movl ";
- 		String cmp = "\t"+"cmp ";
- 		
- 		if (expression1 instanceof Literal) {
- 			// The expression one is a literal
- 			mov1 += "$"+expression1.toString()+", %ebx"+"\n";
- 			if (expression2 instanceof Literal) {
- 				// The expression two is a literal
- 				cmp += "$"+expression2.toString()+", %ebx"+"\n";
- 			} else {
- 				// The expression two is not a literal
- 				Location location2 = (Location)expression2;
- 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
- 			}
- 		} else {
- 			// The expression one is not a literal
- 			Location location1 = (Location)expression1;
- 			mov1 += location1.getOffset()+"(%ebp), %ebx"+"\n"; 
- 			if (expression2 instanceof Literal) {
- 				// The expression two is a literal
- 				cmp += "$"+expression2.toString()+", %ebx"+"\n"; 
- 			} else {
- 				// The expression two is not a literal
- 				Location location2 = (Location)expression2;
- 				cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
- 			}
- 		}
- 		Location result = (Location)stmt.getResult();
-
- 		String jeLabelName = generateLabel();
- 		String endLabelName = generateLabel();
-
-		String jle = "\t"+"jle "+jeLabelName+"\n";
-		String movFalse = "\t"+"movl $0, "+result.getOffset()+"(%ebp)"+"\n";
-		String jend = "\t"+"jmp "+endLabelName+"\n";
-		String jeLabel = jeLabelName+":\n";
-		String movTrue = "\t"+"movl $1, "+result.getOffset()+"(%ebp)"+"\n";
- 		String endLabel = endLabelName+":\n";	
-
- 		return mov1+cmp+jle+movFalse+jend+jeLabel+movTrue+endLabel;
- 	} 
-
- 	/**
  	 * Generate the assembler code for the statement with instruction PUSH 
  	 */
  	private static String generateCodeForPush(OneAddressStatement stmt) {
@@ -493,12 +494,32 @@ public class CTdsCompiler {
  		if (expression instanceof Literal) {
  			// The expression is a literal
  			push += "$"+expression.toString()+"\n";
+ 			return push;
  		} else {
  			// The expression is stored in a location
  			Location loc = (Location)expression;
- 			push += loc.getOffset()+"(%ebp)"+"\n";
+ 			if (loc instanceof VarLocation) {
+ 				// The location is a var location
+				push += loc.getOffset()+"(%ebp)"+"\n";
+				return push;
+ 			} else {
+ 				// The location is a var array location 
+ 				VarArrayLocation arrayLocation = (VarArrayLocation)loc;
+ 				Expression index = arrayLocation.getExpression();
+ 				String movIndex = "\t"+"movl ";
+ 				if (index instanceof Literal) {
+ 					// The index is a literal
+ 					movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
+ 				} else {
+ 					// The index is stored in a location
+ 					movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
+ 				}
+ 				Integer arraySize = arrayLocation.getDeclaration().getCapacity();
+ 				Integer correctBase = -1*(loc.getOffset()-(4*(arraySize-1)));
+ 				push += correctBase+"(%ebp,%ecx,4)"+"\n";
+ 				return movIndex+push;
+ 			}
  		}
- 		return push;
  	}
 
  	/**
@@ -531,61 +552,80 @@ public class CTdsCompiler {
  	 * Generate the assembler code for a statement with an instruction for an arithmetical
  	 * opearation with integers (ADDI,SUBI,IMUL,IDIV)
  	 */
- 	private static String generateCodeForIntegerArithmeticalOperation(ThreeAddressStatement stmt,String instructionName) {
- 		Expression expression1 = stmt.getExpressionOne();
- 		Expression expression2 = stmt.getExpressionTwo();
- 		String stringExpr1 = "";
- 		String stringExpr2 = "";
+ 	private static String generateCodeForIntegerArithmeticalOperation(IntermediateCodeStatement stmt,String instructionName) {
+ 		if (stmt instanceof ThreeAddressStatement) {
+ 			ThreeAddressStatement threeStmt = (ThreeAddressStatement)stmt;
+ 			Expression expression1 = threeStmt.getExpressionOne();
+ 			Expression expression2 = threeStmt.getExpressionTwo();
+ 			String stringExpr1 = "";
+ 			String stringExpr2 = "";
 
- 		if (expression1 instanceof Literal) {
- 			// The expression one is a literal
- 			stringExpr1 = "$"+expression1.toString();
- 			if (expression2 instanceof Literal) {
- 				// The expression two is a literal
- 				stringExpr2 = "$"+expression2.toString();
- 			} else {
- 				// The expression two is not a literal
- 				Location location2 = (Location)expression2;
- 				stringExpr2 = location2.getOffset()+"(%ebp)";
- 			}
+ 			if (expression1 instanceof Literal) {
+ 				// The expression one is a literal
+ 				stringExpr1 = "$"+expression1.toString();
+ 				if (expression2 instanceof Literal) {
+ 					// The expression two is a literal
+ 					stringExpr2 = "$"+expression2.toString();
+ 				} else {
+ 					// The expression two is not a literal
+ 					Location location2 = (Location)expression2;
+ 					stringExpr2 = location2.getOffset()+"(%ebp)";
+ 				}
  		
+ 			} else {
+ 				// The expression one is not a literal
+ 				Location location1 = (Location)expression1;
+ 				stringExpr1 = location1.getOffset()+"(%ebp)"; 
+ 				if (expression2 instanceof Literal) {
+ 					// The expression two is a literal
+ 					stringExpr2 = "$"+expression2.toString(); 
+ 				} else {
+ 					// The expression two is not a literal
+ 					Location location2 = (Location)expression2;
+ 					stringExpr2 = location2.getOffset()+"(%ebp)"; 
+ 				}
+
+ 			}
+ 			String mov1 = "\t"+"movl ";
+ 			String ins;
+ 			String mov2 = "\t"+"movl ";
+ 			Location result = (Location)threeStmt.getResult();
+ 			if (instructionName=="idivl"||instructionName=="mod") {
+ 				String clearDiv = "\t"+"movl $0, %edx"+"\n";
+ 				mov1 += stringExpr1+", %eax"+"\n";
+ 				String movDiv = "\t"+"movl "+stringExpr2+", %ecx"+"\n";
+ 				ins = "idivl %ecx \n";
+ 				if (instructionName=="idivl") {
+ 					// Is div
+ 					mov2 += "%eax, "+result.getOffset()+"(%ebp)"+"\n";
+ 				} else {
+ 					// Is mod
+ 					mov2 += "%edx, "+result.getOffset()+"(%ebp)"+"\n";
+ 				}
+ 				return clearDiv+mov1+movDiv+ins+mov2;
+ 			} else {
+ 				ins = "\t"+instructionName+" ";
+ 				mov1 += stringExpr1+", %ebx"+"\n";
+ 				ins += stringExpr2+", %ebx"+"\n";
+ 				mov2 += "%ebx, "+result.getOffset()+"(%ebp)"+"\n";
+ 				return mov1+ins+mov2;
+ 			}
  		} else {
- 			// The expression one is not a literal
- 			Location location1 = (Location)expression1;
- 			stringExpr1 = location1.getOffset()+"(%ebp)"; 
- 			if (expression2 instanceof Literal) {
- 				// The expression two is a literal
- 				stringExpr2 = "$"+expression2.toString(); 
+ 			TwoAddressStatement twoStmt = (TwoAddressStatement)stmt;
+ 			Expression expr = twoStmt.getExpression();
+ 			String stringExpr;
+ 			if (expr instanceof Literal) {
+ 				// The expression is a literal
+ 				stringExpr = "$"+expr.toString();
  			} else {
  				// The expression two is not a literal
- 				Location location2 = (Location)expression2;
- 				stringExpr2 = location2.getOffset()+"(%ebp)"; 
+ 				Location location = (Location)expr;
+ 				stringExpr = location.getOffset()+"(%ebp)";
  			}
-
- 		}
- 		String mov1 = "\t"+"movl ";
- 		String ins;
- 		String mov2 = "\t"+"movl ";
- 		Location result = (Location)stmt.getResult();
- 		if (instructionName=="idivl"||instructionName=="mod") {
- 			String clearDiv = "\t"+"movl $0, %edx"+"\n";
- 			mov1 += stringExpr1+", %eax"+"\n";
- 			String movDiv = "\t"+"movl "+stringExpr2+", %ecx"+"\n";
- 			ins = "idivl %ecx \n";
- 			if (instructionName=="idivl") {
- 				// Is div
- 				mov2 += "%eax, "+result.getOffset()+"(%ebp)"+"\n";
- 			} else {
- 				// Is mod
- 				mov2 += "%edx, "+result.getOffset()+"(%ebp)"+"\n";
- 			}
- 			return clearDiv+mov1+movDiv+ins+mov2;
- 		} else {
- 			ins = "\t"+instructionName+" ";
- 			mov1 += stringExpr1+", %ebx"+"\n";
- 			ins += stringExpr2+", %ebx"+"\n";
- 			mov2 += "%ebx, "+result.getOffset()+"(%ebp)"+"\n";
- 			return mov1+ins+mov2;
+ 			Location result = (Location)twoStmt.getResult();
+ 			String ins = "\t"+instructionName+" "+stringExpr+", "+result.getOffset()+"(%ebp)"+"\n";
+ 			return ins;	
  		}
  	}
+
 }
