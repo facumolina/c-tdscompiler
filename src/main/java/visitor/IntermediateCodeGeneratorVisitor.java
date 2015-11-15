@@ -151,6 +151,11 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	public Location visit(DeclarationIdentifier ident) {
 		if (ident.isGlobal()) {
 			// The declaration is global
+			VarLocation declLocation = new VarLocation(ident.getId(),ident.getLineNumber(),ident.getColumnNumber());
+			declLocation.setDeclaration(ident);
+			IntermediateCodeStatement stmt = new OneAddressStatement(IntermediateCodeInstruction.GLOBAL,new Label(statementsCounter),declLocation);
+			intermediateCodeStatements.add(stmt);
+			statementsCounter++;
 			return null;
 		} else {
 			// The declaration is local, so set the offset
@@ -164,13 +169,6 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 				// The declaration is a variable
 				ident.setOffset(getNextOffset());
 			}
-			
-			//VarLocation temporalLocation = new VarLocation(ident.getId(),ident.getLineNumber(),ident.getColumnNumber());
-			//temporalLocation.setType(ident.getType()); 
-			//IntermediateCodeStatement reserveICStmt = new OneAddressStatement(IntermediateCodeInstruction.RESERVE,new Label(statementsCounter),temporalLocation);
-			//intermediateCodeStatements.add(reserveICStmt);
-			//statementsCounter++;
-			//return temporalLocation;
 			return null;
 		}
 		
@@ -423,7 +421,13 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a while statement accepting the expression and the block
 	 */
 	public Location visit(WhileStatement stmt){
+		// Add a label instruction 
 		int amountOfStatementsBeforeConditionEval = amountOfStatements();
+		
+		IntermediateCodeStatement labelICStmt = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()));
+		intermediateCodeStatements.add(labelICStmt);
+		statementsCounter++;
+
 		VarLocation temporalLocation = (VarLocation)stmt.getCondition().accept(this);
 		int amountOfStatementsAfterConditionEval = amountOfStatements();
 
@@ -445,6 +449,11 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		Label conditionEvalLabel = new Label(label.getNumber()-(amountOfStatementsAfterConditionEval-amountOfStatementsBeforeConditionEval));
 		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterBlockLabel,conditionEvalLabel);
 		intermediateCodeStatements.add(jumpICStmt);
+		statementsCounter++;
+
+		// Add a label instruction and set the correct label number to jump
+		IntermediateCodeStatement labelICStmt2 = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()));
+		intermediateCodeStatements.add(labelICStmt2);
 		statementsCounter++;
 
 		return null;
@@ -476,7 +485,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	public Location visit(BinOpExpr expr) {
 		IntermediateCodeStatement exprICStmt;
 		IntermediateCodeInstruction instruction = getInstruction(expr.getOperator(),expr.getType());
-		VarLocation leftExpressionLocation = (VarLocation)expr.getLeftOperand().accept(this);
+		Location leftExpressionLocation = expr.getLeftOperand().accept(this);
 		Expression leftExpression;
 		if (leftExpressionLocation==null) {
 			// The left expression does not need a temporal location
@@ -485,7 +494,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 			// The left expression result was stored in a temporal location
 			leftExpression = leftExpressionLocation;
 		}
-		VarLocation rightExpressionLocation = (VarLocation)expr.getRightOperand().accept(this);
+		Location rightExpressionLocation = expr.getRightOperand().accept(this);
 		Expression rightExpression;
 		if (rightExpressionLocation==null) {
 			// The right expression does not need a temporal location

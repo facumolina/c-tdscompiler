@@ -30,6 +30,7 @@ public enum IntermediateCodeInstruction {
 	RET,			// Return
 	PUSH,			// Push arguments
 	CALL,			// Call
+	GLOBAL,			// Global declarations
 	ASSIGN;			// Assignment
 
 	@Override
@@ -85,6 +86,8 @@ public enum IntermediateCodeInstruction {
 				return "PUSH";
 			case CALL:
 				return "CALL";
+			case GLOBAL:
+				return "GLOBAL";
 			case ASSIGN:
 				return "ASSIGN";
 		}
