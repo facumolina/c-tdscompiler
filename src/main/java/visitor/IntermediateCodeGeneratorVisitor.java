@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Stack;
 
 /**
  * This class represents the intermediate code generator visitor for generate 
@@ -12,6 +13,8 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	private int temporalVarsCounter;
 	private int statementsCounter;
 	private int offset;
+	private Stack<Label> inLabels;
+	private Stack<Label> outLabels;
 
 	/**
 	 * Constructor
@@ -21,6 +24,8 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		temporalVarsCounter = 0;
 		statementsCounter = 0;
 		offset = 0;
+		inLabels = new Stack<Label>();
+		outLabels = new Stack<Label>();
 	}
 
 	/**
@@ -290,11 +295,19 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 */
 	public Location visit(ReturnStatement stmt) {
 		IntermediateCodeStatement returnICStmt;
-		VarLocation temporalLocation;
+		Location temporalLocation;
 		if (stmt.hasExpression()) {
 			// The return statement has an expression
-			temporalLocation =  (VarLocation)stmt.getExpression().accept(this);
-			returnICStmt = new OneAddressStatement(IntermediateCodeInstruction.RET,new Label(statementsCounter),temporalLocation);
+			Location temporalLocationExpr =  stmt.getExpression().accept(this);
+			Expression exprLocation;
+			if (temporalLocationExpr == null) {
+				exprLocation = stmt.getExpression();
+				temporalLocation = null;
+			} else {
+				exprLocation = temporalLocationExpr;
+				temporalLocation = temporalLocationExpr;
+			}
+			returnICStmt = new OneAddressStatement(IntermediateCodeInstruction.RET,new Label(statementsCounter),exprLocation);
 		} else {
 			// The return statement has not an expression
 			returnICStmt = new IntermediateCodeStatement(IntermediateCodeInstruction.RET,new Label(statementsCounter));
@@ -310,15 +323,21 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 */
 	public Location visit(IfStatement stmt) {
 
-		VarLocation temporalLocation = (VarLocation)stmt.getCondition().accept(this);
-		
+		Location temporalLocation = stmt.getCondition().accept(this);
+		Expression locationExpression;
+		if (temporalLocation == null ) {
+			locationExpression = stmt.getCondition();
+		} else {
+			locationExpression = temporalLocation;
+		}
+
 		int beforeBlockAmountOfStatements = amountOfStatements();
 		
 		// Add the jump instruction. Later will be modificated with the correct 
 		// label to jump
 		Label label = new Label(beforeBlockAmountOfStatements);
 		Label labelToJump = new Label(0);
-		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,temporalLocation,labelToJump);
+		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,locationExpression,labelToJump);
 		intermediateCodeStatements.add(jumpFICStmt);
 		statementsCounter++; 
 
@@ -387,6 +406,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		// label to jump
 		Label label = new Label(amountOfStatements());
 		Label labelToJump = new Label(0);
+		outLabels.push(labelToJump);
 		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,temporalLocation2,labelToJump);
 		intermediateCodeStatements.add(jumpFICStmt);
 		statementsCounter++; 
@@ -413,7 +433,9 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		statementsCounter++;
 
 		labelToJump.setNumber(amountOfStatements()); 
-
+		if (!outLabels.isEmpty()) {
+			outLabels.pop();
+		}
 		return null;
 	}
 
@@ -423,12 +445,19 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	public Location visit(WhileStatement stmt){
 		// Add a label instruction 
 		int amountOfStatementsBeforeConditionEval = amountOfStatements();
-		
+
 		IntermediateCodeStatement labelICStmt = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()));
 		intermediateCodeStatements.add(labelICStmt);
 		statementsCounter++;
 
-		VarLocation temporalLocation = (VarLocation)stmt.getCondition().accept(this);
+		Location temporalLocation = stmt.getCondition().accept(this);
+		Expression locationExpression;
+		if (temporalLocation == null ) {
+			locationExpression = stmt.getCondition();
+		} else {
+			locationExpression = temporalLocation;
+		}
+
 		int amountOfStatementsAfterConditionEval = amountOfStatements();
 
 		// Add the jump instruction in the case that the expression
@@ -436,7 +465,8 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		// label to jump
 		Label label = new Label(amountOfStatements());
 		Label labelToJump = new Label(0);
-		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,temporalLocation,labelToJump);
+		outLabels.push(labelToJump);
+		IntermediateCodeStatement jumpFICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMPF,label,locationExpression,labelToJump);
 		intermediateCodeStatements.add(jumpFICStmt);
 		statementsCounter++;
 
@@ -456,6 +486,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		intermediateCodeStatements.add(labelICStmt2);
 		statementsCounter++;
 
+		outLabels.pop();
 		return null;
 	}
 
@@ -464,7 +495,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 */
 	public Location visit(BreakStatement stmt) {
 		Label label = new Label(amountOfStatements());
-		Label labelToJump = new Label(0);
+		Label labelToJump = outLabels.peek();
 		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,label,labelToJump);
 		intermediateCodeStatements.add(jumpICStmt);
 		statementsCounter++;
@@ -614,7 +645,19 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit a nullary expression
 	 */
 	public Location visit(NullaryExpr expr) {
-		return expr.getExpression().accept(this);
+		Location temporalLocation = expr.getExpression().accept(this);
+		if (temporalLocation == null) {
+			String tempVarName = getTempVarName();
+			temporalLocation = new VarLocation(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+			DeclarationIdentifier declIdentifier = new DeclarationIdentifier(tempVarName,expr.getLineNumber(),expr.getColumnNumber());
+			declIdentifier.setOffset(getNextOffset());
+			temporalLocation.setDeclaration(declIdentifier);
+			
+			IntermediateCodeStatement assignICStmt = new TwoAddressStatement(IntermediateCodeInstruction.ASSIGN,new Label(statementsCounter),expr.getExpression(),temporalLocation);
+			intermediateCodeStatements.add(assignICStmt);
+			statementsCounter++;
+		} 
+		return temporalLocation;
 	}
 
 	/**
@@ -663,15 +706,23 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	public Location visit(MethodCall call) {
 		Location temporalLocation;
 		IntermediateCodeStatement pushICStmt;
+		LinkedList<Expression> argumentsToPush = new LinkedList<Expression>();
 		for (Expression argument : call.getArguments()) {
 			if (argument instanceof Literal) {
 				// The argument is a literal, so not need a location
-				pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),argument);
+				argumentsToPush.add(0,argument);
+				//pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),argument);
 			} else {
 				// The argument is not a literal, so need a location
 				temporalLocation = argument.accept(this);
-				pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),temporalLocation);
+				argumentsToPush.add(0,temporalLocation);
+				//pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),temporalLocation);
 			}
+			//intermediateCodeStatements.add(pushICStmt);
+			//statementsCounter++;
+		}
+		for (Expression expr: argumentsToPush) {
+			pushICStmt = new OneAddressStatement(IntermediateCodeInstruction.PUSH,new Label(statementsCounter),expr);
 			intermediateCodeStatements.add(pushICStmt);
 			statementsCounter++;
 		}

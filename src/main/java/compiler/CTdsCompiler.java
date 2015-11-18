@@ -160,7 +160,7 @@ public class CTdsCompiler {
  		Process p;
  		try {
  			String[] envs;	
- 			p = Runtime.getRuntime().exec("gcc assembler.s external.c -o exec",null,new File("/home/facu/Documentos/compiladores/c-tdscompiler/"));
+ 			p = Runtime.getRuntime().exec("gcc assembler.s libtestCTDS.c -o exec",null,new File("/home/facu/Documentos/compiladores/c-tdscompiler/"));
  			p.waitFor();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "";			
@@ -565,10 +565,52 @@ public class CTdsCompiler {
  	 * Generate the assembler code for the statement with instruction JUMPF
  	 */
  	private static String generateCodeForJumpF(OneAddressStatement stmt) {
- 		Location loc = (Location)stmt.getExpression();
- 		Label toJump = stmt.getLabelToJump();
+ 		Expression expr = stmt.getExpression();
+ 		String cmp;
+ 		if (expr instanceof Literal) {
+ 			// The expression is a literal
+ 			BooleanLiteral boolLiteral = (BooleanLiteral)expr;
+ 			if (boolLiteral.getBooleanValue()) {
+ 				cmp = "\t"+"cmp $0, $1"+"\n";
+ 			} else {
+ 				cmp = "\t"+"cmp $0, $0"+"\n";
+ 			}	
+ 		} else {
+ 			// The expression is in a location
+ 			Location loc = (Location)expr;
+ 			DeclarationIdentifier declIdentifier = loc.getDeclaration();
+ 			
+ 			if (loc instanceof VarLocation) {
+ 				if (declIdentifier.isGlobal()) {
+ 					cmp = "\t"+"cmp $0, "+declIdentifier.getId()+"\n";
+ 				} else {
+ 					cmp = "\t"+"cmp $0, "+loc.getOffset()+"(%ebp)"+"\n";	
+ 				}
+ 			} else {
+ 				// The expression location is a var array location
+ 				VarArrayLocation arrayLocation = (VarArrayLocation)loc;
+ 				Expression index = arrayLocation.getExpression();
+ 				String movIndex = "\t"+"movl ";
+ 				if (index instanceof Literal) {
+ 					// The index is a literal
+ 					movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %edx"+"\n";
+ 				} else {
+ 					// The index is stored in a location
+ 					movIndex += ((Location)index).getOffset()+"(%ebp), %edx"+"\n";
+ 				}
+ 				cmp = movIndex;
+ 				if (declIdentifier.isGlobal()) {
+ 					cmp += "\t"+"imull $4, %edx"+"\n";
+ 					cmp += "\t"+"cmp $0, "+declIdentifier.getId()+"+0(%edx)"+"\n";
+ 				} else {
+					Integer arraySize = declIdentifier.getCapacity();
+ 					Integer correctBase = -1*(declIdentifier.getOffset()-(4*(arraySize-1)));
+ 					cmp += "\t"+"cmp $0, "+correctBase+"(%ebp,%edx,4)"+"\n";
 
- 		String cmp = "\t"+"cmp $0, "+loc.getOffset()+"(%ebp)"+"\n";
+ 				}
+ 			}	
+ 		}
+ 		Label toJump = stmt.getLabelToJump();
  		String je = "\t"+"je "+toJump.toString()+"\n";
 
  		return cmp + je;
@@ -591,7 +633,30 @@ public class CTdsCompiler {
  		Expression expression = stmt.getExpression();
  		if (expression instanceof Literal) {
  			// The expression is a literal
- 			push += "$"+expression.toString()+"\n";
+ 			if (expression instanceof IntLiteral) {
+ 				// The expression is an int literal
+ 				IntLiteral intLiteral = (IntLiteral)expression;
+ 				push += "$"+ intLiteral.getIntegerValue()+"\n";
+ 			} else if (expression instanceof BooleanLiteral) {
+ 				// The expression is a boolean literal
+ 				BooleanLiteral boolLiteral = (BooleanLiteral)expression;
+ 				if (boolLiteral.getBooleanValue()) {
+ 					// Is true
+ 					push += "$1"+"\n";
+ 				} else {
+ 					// Is false
+ 					push += "$0"+"\n";
+ 				}
+ 			} else {
+ 				// The expression is a float literal
+ 				FloatLiteral floatLiteral = (FloatLiteral)expression;
+ 				Integer integer = Float.floatToRawIntBits(floatLiteral.getFloatValue());
+ 				String labelName = "."+generateLabel();
+ 				String floatLabel = labelName+":\n";
+ 				floatLabel += "\t"+".long "+integer+"\n";
+ 				floatLabels.add(floatLabel);
+ 				push += labelName+"\n";
+ 			}
  			return push;
  		} else {
  			// The expression is stored in a location
@@ -647,11 +712,55 @@ public class CTdsCompiler {
  	private static String generateCodeForRet(IntermediateCodeStatement stmt) {
  		String leave = "\t"+"leave"+"\n";
  		String ret = "\t"+"ret"+"\n";
+ 		String movl;
  		if (stmt instanceof OneAddressStatement) {
  			// The return must return a value stored in a location
- 			Location loc = (Location)((OneAddressStatement)stmt).getExpression();
- 			String movl = "\tmovl "+loc.getOffset()+"(%ebp), %eax"+"\n";
- 			return movl+leave+ret;
+ 			Expression expr = ((OneAddressStatement)stmt).getExpression();
+ 			if (expr instanceof Literal) {
+ 				// The expression is a literal
+ 				if (expr instanceof IntLiteral) {
+ 					movl = "\t"+"movl $"+((IntLiteral)expr).getIntegerValue()+", %eax"+"\n";
+ 				} else if (expr instanceof BooleanLiteral){
+ 					movl = "";
+ 				} else {
+ 					movl = "";
+ 				}
+ 				return movl+leave+ret;
+ 			} else {
+ 				// The expression is in a location
+ 				Location loc = (Location)expr;
+ 				DeclarationIdentifier declIdentifier = loc.getDeclaration();
+ 				if (loc instanceof VarLocation) {
+ 					// The location is a var location
+ 					if (declIdentifier.isGlobal()) {
+ 						movl = "\t"+"movl "+declIdentifier.getId()+", %eax"+"\n";
+ 					} else {
+ 						movl = "\tmovl "+loc.getOffset()+"(%ebp), %eax"+"\n";
+ 					}
+ 					return movl+leave+ret;
+ 				} else {
+ 					// The location is a var array location
+ 					VarArrayLocation arrayLocation = (VarArrayLocation)loc;
+ 					Expression index = arrayLocation.getExpression();
+ 					String movIndex = "\t"+"movl ";
+ 					if (index instanceof Literal) {
+ 						// The index is a literal
+ 						movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
+ 					} else {
+ 						// The index is stored in a location
+ 						movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
+ 					}
+ 					if (declIdentifier.isGlobal()) {
+ 						String mult = "\t"+"imull $4, %ecx"+"\n";
+ 						movl = "\t"+"movl "+declIdentifier.getId()+"+0(%ecx), %eax"+"\n";
+ 					} else {
+ 						Integer arraySize = arrayLocation.getDeclaration().getCapacity();
+ 						Integer correctBase = -1*(loc.getOffset()-(4*(arraySize-1)));
+ 						movl = "\t"+"movl "+correctBase+"(%ebp,%ecx,4), %eax"+"\n";
+ 					}
+ 					return movIndex+movl+leave+ret;
+ 				}
+ 			}
  		} else {
  			return leave+ret;
  		}
@@ -671,6 +780,7 @@ public class CTdsCompiler {
  			String mov1 = "\t"+"movl ";
  			String ins = "\t"+instructionName+" ";
  			String mov2 = "\t"+"movl ";
+ 			boolean considerIns = false;
  			if (expression1 instanceof Literal) {
  				// The expression one is a literal
  				stringExpr1 = "$"+expression1.toString();
@@ -751,7 +861,6 @@ public class CTdsCompiler {
  						stringExpr1 = "%ebx";
  					}
  				}
- 				
  				if (expression2 instanceof Literal) {
  					// The expression two is a literal
  					stringExpr2 = "$"+expression2.toString(); 
@@ -781,15 +890,19 @@ public class CTdsCompiler {
  						ins = movIndex2;
  						if (locDeclaration2.isGlobal()) {
  							ins += "\t"+"imull $4, %edx"+"\n";
- 							if (!((instructionName=="idivl"||instructionName=="mod"))) {
+ 							if (instructionName!="idivl"&&instructionName!="mod") {
  								ins += "\t"+instructionName+" ";
+ 							} else {
+ 								considerIns = true;
  							}
  							stringExpr2 = locDeclaration2.getId()+"+0(%edx)";
  						} else {
 							Integer arraySize2 = locDeclaration2.getCapacity();
  							Integer correctBase2 = -1*(locDeclaration2.getOffset()-(4*(arraySize2-1)));
- 							if (!((instructionName=="idivl"||instructionName=="mod"))) {
+ 							if (instructionName!="idivl"&&instructionName!="mod") {
  								ins += "\t"+instructionName+" ";
+ 							} else {
+ 								considerIns = true;
  							}
  							stringExpr2 = correctBase2+"(%ebp,%edx,4)";
  						}
@@ -799,7 +912,7 @@ public class CTdsCompiler {
  			Location result = (Location)threeStmt.getResult();
  			if (instructionName=="idivl"||instructionName=="mod") {
  				String prevIns = "";
- 				if (instructionName=="idivl") {
+ 				if ((instructionName=="idivl")&&considerIns) {
  					prevIns = ins;
  				}
  				String clearDiv = "\t"+"movl $0, %edx"+"\n";
