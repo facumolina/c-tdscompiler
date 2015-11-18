@@ -310,7 +310,7 @@ public class CTdsCompiler {
  					movl += "\t"+"movl %ebx, ";
  				} else {
 					Integer arraySize = arrayLocation.getDeclaration().getCapacity();
- 					Integer correctBase = -1*(loc.getOffset()-(4*(arraySize-1)));
+ 					Integer correctBase = loc.getOffset()-(4*(arraySize-1));
  					movl += "\t"+"movl "+correctBase+"(%ebp,%ebx,4), %ebx"+"\n";
  					movl += "\t"+"movl %ebx, ";
  				}
@@ -351,7 +351,7 @@ public class CTdsCompiler {
  				return movIndex+mul+movl;
  			} else {
 				Integer arraySize = arrayLocation.getDeclaration().getCapacity();
- 				Integer correctBase = -1*(result.getOffset()-(4*(arraySize-1)));
+ 				Integer correctBase = result.getOffset()-(4*(arraySize-1));
  				movl += correctBase+"(%ebp,%ecx,4)"+"\n";
  				return movIndex+movl; 
  			}
@@ -604,7 +604,7 @@ public class CTdsCompiler {
  					cmp += "\t"+"cmp $0, "+declIdentifier.getId()+"+0(%edx)"+"\n";
  				} else {
 					Integer arraySize = declIdentifier.getCapacity();
- 					Integer correctBase = -1*(declIdentifier.getOffset()-(4*(arraySize-1)));
+ 					Integer correctBase = declIdentifier.getOffset()-(4*(arraySize-1));
  					cmp += "\t"+"cmp $0, "+correctBase+"(%ebp,%edx,4)"+"\n";
 
  				}
@@ -688,7 +688,7 @@ public class CTdsCompiler {
  					return movIndex+mult+push;
  				} else {
  					Integer arraySize = arrayLocation.getDeclaration().getCapacity();
- 					Integer correctBase = -1*(loc.getOffset()-(4*(arraySize-1)));
+ 					Integer correctBase = loc.getOffset()-(4*(arraySize-1));
  					push += correctBase+"(%ebp,%ecx,4)"+"\n";
  					return movIndex+push;
  				}
@@ -755,7 +755,7 @@ public class CTdsCompiler {
  						movl = "\t"+"movl "+declIdentifier.getId()+"+0(%ecx), %eax"+"\n";
  					} else {
  						Integer arraySize = arrayLocation.getDeclaration().getCapacity();
- 						Integer correctBase = -1*(loc.getOffset()-(4*(arraySize-1)));
+ 						Integer correctBase = loc.getOffset()-(4*(arraySize-1));
  						movl = "\t"+"movl "+correctBase+"(%ebp,%ecx,4), %eax"+"\n";
  					}
  					return movIndex+movl+leave+ret;
@@ -817,7 +817,7 @@ public class CTdsCompiler {
  							stringExpr2 = locDeclaration2.getId()+"+0(%edx)";
  						} else {
 							Integer arraySize2 = locDeclaration2.getCapacity();
- 							Integer correctBase2 = -1*(locDeclaration2.getOffset()-(4*(arraySize2-1)));
+ 							Integer correctBase2 = locDeclaration2.getOffset()-(4*(arraySize2-1));
  							ins += "\t"+instructionName+" ";
  							stringExpr2 = correctBase2+"(%ebp,%edx,4)";
  						}
@@ -855,7 +855,7 @@ public class CTdsCompiler {
  						stringExpr1 = "%ebx";
  					} else {
 						Integer arraySize = locDeclaration1.getCapacity();
- 						Integer correctBase = -1*(locDeclaration1.getOffset()-(4*(arraySize-1)));
+ 						Integer correctBase = locDeclaration1.getOffset()-(4*(arraySize-1));
  						mov1 = "\t"+"movl "+correctBase+"(%ebp,%ebx,4), %ebx"+"\n";
  						mov1 += "\t"+"movl";
  						stringExpr1 = "%ebx";
@@ -898,7 +898,7 @@ public class CTdsCompiler {
  							stringExpr2 = locDeclaration2.getId()+"+0(%edx)";
  						} else {
 							Integer arraySize2 = locDeclaration2.getCapacity();
- 							Integer correctBase2 = -1*(locDeclaration2.getOffset()-(4*(arraySize2-1)));
+ 							Integer correctBase2 = locDeclaration2.getOffset()-(4*(arraySize2-1));
  							if (instructionName!="idivl"&&instructionName!="mod") {
  								ins += "\t"+instructionName+" ";
  							} else {
