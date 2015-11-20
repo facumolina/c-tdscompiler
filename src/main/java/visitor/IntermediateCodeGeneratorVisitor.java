@@ -590,7 +590,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 			case CEQ:
 				return IntermediateCodeInstruction.EQ;
 			case NEQ:
-				return IntermediateCodeInstruction.EQ;
+				return IntermediateCodeInstruction.NEQ;
 			case AND:
 				return IntermediateCodeInstruction.AND;
 			case OR:

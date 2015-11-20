@@ -16,6 +16,6 @@ export CLASSPATH=""
 
 for file in `ls lib/`; do export CLASSPATH=$CLASSPATH:lib/$file; done
 mkdir -p classes
-javac -cp $CLASSPATH src/main/java/scanner/*.java src/main/java/parser/*.java src/main/java/compiler/*.java src/main/java/interpreter/*.java src/test/java/*.java src/main/java/ast/*.java src/main/java/visitor/*.java src/main/java/intermediatecode/*.java -d classes/
+javac -cp $CLASSPATH src/main/java/scanner/*.java src/main/java/parser/*.java src/main/java/compiler/*.java src/main/java/interpreter/*.java src/test/java/*.java src/main/java/ast/*.java src/main/java/visitor/*.java src/main/java/intermediatecode/*.java src/main/java/assembler/*.java -d classes/
 
 echo "Successful compilation"
