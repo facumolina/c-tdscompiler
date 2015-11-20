@@ -169,40 +169,14 @@ public class AssemblerCodeGenerator {
  		} else {
  			// The expression value is stored in a location
  			Location loc = (Location)expression;
- 			DeclarationIdentifier locDeclaration = loc.getDeclaration();
  			if (loc instanceof VarLocation) {
  				// The location is a var location
- 				if (locDeclaration.isGlobal()) {
- 					movl = "\t"+"movl "+locDeclaration.getId()+", %ebx"+"\n";
- 				} else {
-					movl = "\t"+"movl "+loc.getOffset()+"(%ebp), %ebx"+"\n";
- 				}
- 				movl += "\t"+"movl %ebx, ";
+ 				movl = generateCodeForMoveVarLocationToRegister((VarLocation)loc,"ebx");
  			} else {
  				// The location is a var array location
- 				VarArrayLocation arrayLocation = (VarArrayLocation)loc;
- 				Expression index = arrayLocation.getExpression();
- 				String movIndex = "\t"+"movl ";
- 				if (index instanceof Literal) {
- 					// The index is a literal
- 					movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ebx"+"\n";
- 				} else {
- 					// The index is stored in a location
- 					movIndex += ((Location)index).getOffset()+"(%ebp), %ebx"+"\n";
- 				}
- 				movl = movIndex;
- 				if (locDeclaration.isGlobal()) {
- 					movl += "\t"+"imull $4, %ebx"+"\n";
- 					movl += "\t"+"movl "+loc.getId()+"+0(%ebx), %ebx"+"\n";
- 					movl += "\t"+"movl %ebx, ";
- 				} else {
-					Integer arraySize = arrayLocation.getDeclaration().getCapacity();
- 					Integer correctBase = loc.getOffset()-(4*(arraySize-1));
- 					movl += "\t"+"movl "+correctBase+"(%ebp,%ebx,4), %ebx"+"\n";
- 					movl += "\t"+"movl %ebx, ";
- 				}
+ 				movl = generateCodeForMoveVarArrayLocationToRegister((VarArrayLocation)loc,"ebx","ebx");
  			}	
- 			
+ 			movl += "\t"+"movl %ebx, ";
  		}
  		Location result = (Location)stmt.getResult();
  		if (result instanceof VarLocation) {
@@ -223,13 +197,13 @@ public class AssemblerCodeGenerator {
  			// The result is a var array location
  			VarArrayLocation arrayLocation = (VarArrayLocation)result;
  			Expression index = arrayLocation.getExpression();
- 			String movIndex = "\t"+"movl ";
+ 			String movIndex = "";
  			if (index instanceof Literal) {
  				// The index is a literal
- 				movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
+ 				movIndex = generateCodeForMoveLiteralToRegister((Literal)index,"ecx");
  			} else {
  				// The index is stored in a location
- 				movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
+ 				movIndex = generateCodeForMoveVarLocationToRegister((VarLocation)index,"ecx");
  			}
  			DeclarationIdentifier declIdentifier = arrayLocation.getDeclaration();
  			if (declIdentifier.isGlobal()) {
@@ -290,159 +264,54 @@ public class AssemblerCodeGenerator {
  		Expression expression1 = stmt.getExpressionOne();
  		Expression expression2 = stmt.getExpressionTwo();
  		String mov1;
- 		String ins = "\t"+instructionName+" ";
+ 		String ins;
  		String mov2 = "\t"+"movl ";
- 		String stringExpr1;
- 		String stringExpr2;
  		if (expression1 instanceof Literal) {
  			// The expression one is a literal, so move it to the ebx register
  			mov1 = generateCodeForMoveLiteralToRegister((Literal)expression1,"ebx");
  			if (expression2 instanceof Literal) {
  				// The expression two is a literal
- 				BooleanLiteral boolLiteral = (BooleanLiteral)expression2;
- 				if (boolLiteral.getBooleanValue()) {
- 					stringExpr2 = "$1";
- 				} else {
- 					stringExpr2 = "$0";
- 				}
- 	
+ 				ins = generateCodeForBinaryInstructionToRegister(instructionName,(Literal)expression2,"ebx");
  			} else {
  				// The expression two is not a literal
  				Location location2 = (Location)expression2;
- 				DeclarationIdentifier locDeclaration2 = location2.getDeclaration();
  				if (location2 instanceof VarLocation) {
  					// The expression location is a var location
- 					if (locDeclaration2.isGlobal()) {
- 						stringExpr2 = locDeclaration2.getId();
- 					} else {
-						stringExpr2 = location2.getOffset()+"(%ebp)"; 
- 					}
+ 					ins = generateCodeForBinaryInstructionToRegister(instructionName,(VarLocation)location2,"ebx");
  				} else {
  					// The expression location is a var array location
- 					VarArrayLocation arrayLocation2 = (VarArrayLocation)location2;
- 					Expression index2 = arrayLocation2.getExpression();
- 					String movIndex2 = "\t"+"movl ";
- 					if (index2 instanceof Literal) {
- 						// The index is a literal
- 						movIndex2 += "$"+((IntLiteral)index2).getIntegerValue()+", %edx"+"\n";
- 					} else {
- 						// The index is stored in a location
- 						movIndex2 += ((Location)index2).getOffset()+"(%ebp), %edx"+"\n";
- 					}
- 					ins = movIndex2;
- 					if (locDeclaration2.isGlobal()) {
- 						ins += "\t"+"imull $4, %edx"+"\n";
- 						ins += "\t"+instructionName+" ";
- 						stringExpr2 = locDeclaration2.getId()+"+0(%edx)";
- 					} else {
-						Integer arraySize2 = locDeclaration2.getCapacity();
- 						Integer correctBase2 = locDeclaration2.getOffset()-(4*(arraySize2-1));
- 						ins += "\t"+instructionName+" ";
- 						stringExpr2 = correctBase2+"(%ebp,%edx,4)";
- 					}
+ 					ins = generateCodeForBinaryInstructionToRegister(instructionName,(VarArrayLocation)location2,"edx","ebx");
  				}
  			}
  		} else {
  			// The expression one is not a literal
  			Location location1 = (Location)expression1;
- 			DeclarationIdentifier locDeclaration1 = location1.getDeclaration();
  			if (location1 instanceof VarLocation) {
  				// The expression location is a var location
- 				if (locDeclaration1.isGlobal()) {
- 					stringExpr1 = locDeclaration1.getId();
- 				} else {
- 					stringExpr1 = location1.getOffset()+"(%ebp)";
- 				}
- 				mov1 = "\t"+"movl "+stringExpr1+", %ebx"+"\n";
+ 				mov1 = generateCodeForMoveVarLocationToRegister((VarLocation)location1,"ebx");
  			} else {
 				// The expression location is a var array location
- 				VarArrayLocation arrayLocation1 = (VarArrayLocation)location1;
- 				Expression index1 = arrayLocation1.getExpression();
- 				String movIndex1 = "\t"+"movl ";
- 				if (index1 instanceof Literal) {
- 					// The index is a literal
- 					movIndex1 += "$"+((IntLiteral)index1).getIntegerValue()+", %ebx"+"\n";
- 				} else {
- 					// The index is stored in a location
- 					movIndex1 += ((Location)index1).getOffset()+"(%ebp), %ebx"+"\n";
- 				}
- 				mov1 = movIndex1;
- 				if (locDeclaration1.isGlobal()) {
- 					mov1 += "\t"+"imull $4, %ebx"+"\n";
- 					mov1 += "\t"+"movl "+locDeclaration1.getId()+"+0(%ebx), %ebx"+"\n";
- 					mov1 += "\t"+"movl ";
- 					stringExpr1 = "%ebx";
- 				} else {
-					Integer arraySize = locDeclaration1.getCapacity();
- 					Integer correctBase = locDeclaration1.getOffset()-(4*(arraySize-1));
- 					mov1 = "\t"+"movl "+correctBase+"(%ebp,%ebx,4), %ebx"+"\n";
- 				}
+ 				mov1 = generateCodeForMoveVarArrayLocationToRegister((VarArrayLocation)location1,"ebx","ebx");
  			} 
  			if (expression2 instanceof Literal) {
  				// The expression two is a literal
- 				BooleanLiteral boolLiteral = (BooleanLiteral)expression2;
- 				if (boolLiteral.getBooleanValue()) {
- 					stringExpr2 = "$1";
- 				} else {
- 					stringExpr2 = "$0";
- 				}
- 	
+ 				ins = generateCodeForBinaryInstructionToRegister(instructionName,(Literal)expression2,"ebx");
  			} else {
  				// The expression two is not a literal
  				Location location2 = (Location)expression2;
- 				DeclarationIdentifier locDeclaration2 = location2.getDeclaration();
  				if (location2 instanceof VarLocation) {
  					// The expression location is a var location
- 					if (locDeclaration2.isGlobal()) {
- 						stringExpr2 = locDeclaration2.getId();
- 					} else {
-						stringExpr2 = location2.getOffset()+"(%ebp)"; 
- 					}
+ 					ins = generateCodeForBinaryInstructionToRegister(instructionName,(VarLocation)location2,"ebx");
  				} else {
  					// The expression location is a var array location
- 					VarArrayLocation arrayLocation2 = (VarArrayLocation)location2;
- 					Expression index2 = arrayLocation2.getExpression();
- 					String movIndex2 = "\t"+"movl ";
- 					if (index2 instanceof Literal) {
- 						// The index is a literal
- 						movIndex2 += "$"+((IntLiteral)index2).getIntegerValue()+", %edx"+"\n";
- 					} else {
- 						// The index is stored in a location
- 						movIndex2 += ((Location)index2).getOffset()+"(%ebp), %edx"+"\n";
- 					}
- 					ins = movIndex2;
- 					if (locDeclaration2.isGlobal()) {
- 						ins += "\t"+"imull $4, %edx"+"\n";
- 						ins += "\t"+instructionName+" ";
- 						stringExpr2 = locDeclaration2.getId()+"+0(%edx)";
- 					} else {
-						Integer arraySize2 = locDeclaration2.getCapacity();
- 						Integer correctBase2 = locDeclaration2.getOffset()-(4*(arraySize2-1));
- 						ins += "\t"+instructionName+" ";
- 						stringExpr2 = correctBase2+"(%ebp,%edx,4)";
- 					}
+ 					ins = generateCodeForBinaryInstructionToRegister(instructionName,(VarArrayLocation)location2,"edx","ebx");
  				}
  			}
  		}
  		Location result = (Location)stmt.getResult();
- 		ins += stringExpr2+", %ebx"+"\n";
  		mov2 += "%ebx, "+result.getOffset()+"(%ebp)"+"\n";
  		return mov1+ins+mov2;
  	}
-
- 	/**
- 	 * Generate code for move a given var location to a register
- 	 */
- 	private static String generateCodeForMoveVarLocationToRegister(VarLocation loc, String registerName) {
- 		return "";
- 	}
-
- 	/**
- 	 * Generate code for move a given var array location to a register
- 	 */
- 	 private static String generateCodeForMoveVarArrayLocationToRegister(VarArrayLocation arrayLoc, String registerName) {
- 	 	return "";
- 	 }
 
  	/**
  	 * Generate the assembler code for a statement with the instruction NOT
@@ -451,8 +320,8 @@ public class AssemblerCodeGenerator {
 		Expression expr = stmt.getExpression();
  		String mov1;
  		if (expr instanceof Literal) {
- 			// The expression is a literal, so move it to the ebx register
- 			mov1 = generateCodeForMoveLiteralToRegister((Literal)expr,"ebx");
+ 			// The expression is a literal
+ 			mov1 = generateCodeForBinaryInstructionToRegister("movl",(Literal)expr,"ebx");
  		} else {
  			// The expression two is not a literal
  			Location location = (Location)expr;
@@ -482,162 +351,47 @@ public class AssemblerCodeGenerator {
  		Expression expression1 = stmt.getExpressionOne();
  		Expression expression2 = stmt.getExpressionTwo();
 
- 		String mov1 = "\t"+"movl ";
- 		String cmp = "\t"+"cmp ";
+ 		String mov1 = "";
+ 		String cmp = "";
  		if (expression1 instanceof Literal) {
  			// The expression one is a literal, so move it to the ebx register
  			mov1 = generateCodeForMoveLiteralToRegister((Literal)expression1,"ebx");
  			if (expression2 instanceof Literal) {
  				// The expression two is a literal
- 				if (expression2 instanceof IntLiteral) {
- 					// The expression is an int literal
- 					IntLiteral intLiteral2 = (IntLiteral)expression2;
- 					cmp += "$"+intLiteral2.getIntegerValue()+", %ebx"+"\n";
- 				} else if (expression2 instanceof BooleanLiteral) {
- 					// The expression is a boolean literal
- 					BooleanLiteral boolLiteral2 = (BooleanLiteral)expression2;
- 					if (boolLiteral2.getBooleanValue()) {
- 						// Is true
- 						cmp += "$1, %ebx"+"\n";
- 					} else {
- 						// Is false
- 						cmp += "$0, %ebx"+"\n";
- 					}
- 				} else {
- 					// The expression is a float literal
- 					FloatLiteral floatLiteral2 = (FloatLiteral)expression2;
- 					Integer integer2 = Float.floatToRawIntBits(floatLiteral2.getFloatValue());
- 					String labelName2 = "."+generateLabel();
- 					String floatLabel2 = labelName2+":\n";
- 					floatLabel2 += "\t"+".long "+integer2+"\n";
- 					floatLabels.add(floatLabel2);
- 					cmp += labelName2+", %ebx"+"\n";
- 				}
+ 				cmp = generateCodeForBinaryInstructionToRegister("cmp",(Literal)expression2,"ebx");
  			} else {
  				// The expression two is not a literal
  				Location location2 = (Location)expression2;
- 				DeclarationIdentifier locDeclaration2 = location2.getDeclaration();
  				if (location2 instanceof VarLocation) {
  					// The expression location is a var location
- 					if (locDeclaration2.isGlobal()) {
- 						cmp += locDeclaration2.getId()+", %ebx"+"\n";
- 					} else {
-						cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
- 					}
+ 					cmp = generateCodeForBinaryInstructionToRegister("cmp",(VarLocation)location2,"ebx");
  				} else {
  					// The expression location is a var array location
- 					VarArrayLocation arrayLocation2 = (VarArrayLocation)location2;
- 					Expression index2 = arrayLocation2.getExpression();
- 					String movIndex2 = "\t"+"movl ";
- 					if (index2 instanceof Literal) {
- 						// The index is a literal
- 						movIndex2 += "$"+((IntLiteral)index2).getIntegerValue()+", %edx"+"\n";
- 					} else {
- 						// The index is stored in a location
- 						movIndex2 += ((Location)index2).getOffset()+"(%ebp), %edx"+"\n";
- 					}
- 					cmp = movIndex2;
- 					if (locDeclaration2.isGlobal()) {
- 						cmp += "\t"+"imull $4, %edx"+"\n";
- 						cmp += "\t"+"cmp "+locDeclaration2.getId()+"+0(%edx), %ebx"+"\n";
- 					} else {
-						Integer arraySize2 = locDeclaration2.getCapacity();
- 						Integer correctBase2 = locDeclaration2.getOffset()-(4*(arraySize2-1));
- 						cmp += "\t"+"cmp "+correctBase2+"(%ebp,%edx,4), %ebx"+"\n";
- 					}
+ 					cmp = generateCodeForBinaryInstructionToRegister("cmp",(VarArrayLocation)location2,"edx","ebx");
  				}
  			}
  		} else {
  			// The expression one is not a literal
 			Location location1 = (Location)expression1;
- 			DeclarationIdentifier locDeclaration1 = location1.getDeclaration();
  			if (location1 instanceof VarLocation) {
  				// The expression location is a var location
- 				if (locDeclaration1.isGlobal()) {
- 					mov1 += locDeclaration1.getId()+", %ebx"+"\n";
- 				} else {
- 					mov1 += location1.getOffset()+"(%ebp), %ebx"+"\n";
-				}
+ 				mov1 = generateCodeForMoveVarLocationToRegister((VarLocation)location1,"ebx");
  			} else {
  				// The expression location is a var array location
- 				VarArrayLocation arrayLocation1 = (VarArrayLocation)location1;
- 				Expression index1 = arrayLocation1.getExpression();
- 				String movIndex1 = "\t"+"movl ";
- 				if (index1 instanceof Literal) {
- 					// The index is a literal
- 					movIndex1 += "$"+((IntLiteral)index1).getIntegerValue()+", %edx"+"\n";
- 				} else {
- 					// The index is stored in a location
- 					movIndex1 += ((Location)index1).getOffset()+"(%ebp), %edx"+"\n";
- 				}
- 				mov1 = movIndex1;
- 				if (locDeclaration1.isGlobal()) {
- 					mov1 += "\t"+"imull $4, %edx"+"\n";
- 					mov1 += "\t"+"movl "+locDeclaration1.getId()+"+0(%edx), %ebx"+"\n";
- 				} else {
-					Integer arraySize1 = locDeclaration1.getCapacity();
- 					Integer correctBase1 = locDeclaration1.getOffset()-(4*(arraySize1-1));
- 					mov1 += "\t"+"movl "+correctBase1+"(%ebp,%edx,4), %ebx";
- 				}
+ 				mov1 = generateCodeForMoveVarArrayLocationToRegister((VarArrayLocation)location1,"ebx","edx");
  			} 
  			if (expression2 instanceof Literal) {
  				// The expression two is a literal
- 				if (expression2 instanceof IntLiteral) {
- 					// The expression is an int literal
- 					IntLiteral intLiteral2 = (IntLiteral)expression2;
- 					cmp += "$"+intLiteral2.getIntegerValue()+", %ebx"+"\n";
- 				} else if (expression2 instanceof BooleanLiteral) {
- 					// The expression is a boolean literal
- 					BooleanLiteral boolLiteral2 = (BooleanLiteral)expression2;
- 					if (boolLiteral2.getBooleanValue()) {
- 						// Is true
- 						cmp += "$1, %ebx"+"\n";
- 					} else {
- 						// Is false
- 						cmp += "$0, %ebx"+"\n";
- 					}
- 				} else {
- 					// The expression is a float literal
- 					FloatLiteral floatLiteral2 = (FloatLiteral)expression2;
- 					Integer integer2 = Float.floatToRawIntBits(floatLiteral2.getFloatValue());
- 					String labelName2 = "."+generateLabel();
- 					String floatLabel2 = labelName2+":\n";
- 					floatLabel2 += "\t"+".long "+integer2+"\n";
- 					floatLabels.add(floatLabel2);
- 					cmp += labelName2+", %ebx"+"\n";
- 				}
+ 				cmp = generateCodeForBinaryInstructionToRegister("cmp",(Literal)expression2,"ebx");
  			} else {
  				// The expression two is not a literal
  				Location location2 = (Location)expression2;
- 				DeclarationIdentifier locDeclaration2 = location2.getDeclaration();
  				if (location2 instanceof VarLocation) {
  					// The expression location is a var location
- 					if (locDeclaration2.isGlobal()) {
- 						cmp += locDeclaration2.getId()+", %ebx"+"\n";
- 					} else {
-						cmp += location2.getOffset()+"(%ebp), %ebx"+"\n";
- 					}
+ 					cmp = generateCodeForBinaryInstructionToRegister("cmp",(VarLocation)location2,"ebx");
  				} else {
  					// The expression location is a var array location
- 					VarArrayLocation arrayLocation2 = (VarArrayLocation)location2;
- 					Expression index2 = arrayLocation2.getExpression();
- 					String movIndex2 = "\t"+"movl ";
- 					if (index2 instanceof Literal) {
- 						// The index is a literal
- 						movIndex2 += "$"+((IntLiteral)index2).getIntegerValue()+", %edx"+"\n";
- 					} else {
- 						// The index is stored in a location
- 						movIndex2 += ((Location)index2).getOffset()+"(%ebp), %edx"+"\n";
- 					}
- 					cmp = movIndex2;
- 					if (locDeclaration2.isGlobal()) {
- 						cmp += "\t"+"imull $4, %edx"+"\n";
- 						cmp += "\t"+"cmp "+locDeclaration2.getId()+"+0(%edx), %ebx"+"\n";
- 					} else {
-						Integer arraySize2 = locDeclaration2.getCapacity();
- 						Integer correctBase2 = locDeclaration2.getOffset()-(4*(arraySize2-1));
- 						cmp += "\t"+"cmp "+correctBase2+"(%ebp,%edx,4), %ebx"+"\n";
- 					}
+ 					cmp = generateCodeForBinaryInstructionToRegister("cmp",(VarArrayLocation)location2,"edx","ebx");
  				}
  			}
  		}
@@ -707,13 +461,13 @@ public class AssemblerCodeGenerator {
  				// The expression location is a var array location
  				VarArrayLocation arrayLocation = (VarArrayLocation)loc;
  				Expression index = arrayLocation.getExpression();
- 				String movIndex = "\t"+"movl ";
+ 				String movIndex = "";
  				if (index instanceof Literal) {
  					// The index is a literal
- 					movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %edx"+"\n";
+ 					movIndex = generateCodeForMoveLiteralToRegister((Literal)index,"edx");
  				} else {
  					// The index is stored in a location
- 					movIndex += ((Location)index).getOffset()+"(%ebp), %edx"+"\n";
+ 					movIndex = generateCodeForMoveVarLocationToRegister((VarLocation)index,"edx");
  				}
  				cmp = movIndex;
  				if (declIdentifier.isGlobal()) {
@@ -791,13 +545,13 @@ public class AssemblerCodeGenerator {
  				// The location is a var array location 
  				VarArrayLocation arrayLocation = (VarArrayLocation)loc;
  				Expression index = arrayLocation.getExpression();
- 				String movIndex = "\t"+"movl ";
+ 				String movIndex = "";
  				if (index instanceof Literal) {
  					// The index is a literal
- 					movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
+ 					movIndex = generateCodeForMoveLiteralToRegister((Literal)index,"ecx");
  				} else {
  					// The index is stored in a location
- 					movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
+ 					movIndex = generateCodeForMoveVarLocationToRegister((VarLocation)index,"ecx");
  				}
  				if (declIdentifier.isGlobal()) {
  					String mult = "\t"+"imull $4, %ecx"+"\n";
@@ -836,42 +590,18 @@ public class AssemblerCodeGenerator {
  			if (expr instanceof Literal) {
  				// The expression is a literal, so move the literal to the eax
  				movl = generateCodeForMoveLiteralToRegister((Literal)expr,"eax");
- 				return movl+leave+ret;
  			} else {
  				// The expression is in a location
  				Location loc = (Location)expr;
- 				DeclarationIdentifier declIdentifier = loc.getDeclaration();
  				if (loc instanceof VarLocation) {
  					// The location is a var location
- 					if (declIdentifier.isGlobal()) {
- 						movl = "\t"+"movl "+declIdentifier.getId()+", %eax"+"\n";
- 					} else {
- 						movl = "\tmovl "+loc.getOffset()+"(%ebp), %eax"+"\n";
- 					}
- 					return movl+leave+ret;
+ 					movl = generateCodeForMoveVarLocationToRegister((VarLocation)loc,"eax");
  				} else {
  					// The location is a var array location
- 					VarArrayLocation arrayLocation = (VarArrayLocation)loc;
- 					Expression index = arrayLocation.getExpression();
- 					String movIndex = "\t"+"movl ";
- 					if (index instanceof Literal) {
- 						// The index is a literal
- 						movIndex += "$"+((IntLiteral)index).getIntegerValue()+", %ecx"+"\n";
- 					} else {
- 						// The index is stored in a location
- 						movIndex += ((Location)index).getOffset()+"(%ebp), %ecx"+"\n";
- 					}
- 					if (declIdentifier.isGlobal()) {
- 						String mult = "\t"+"imull $4, %ecx"+"\n";
- 						movl = "\t"+"movl "+declIdentifier.getId()+"+0(%ecx), %eax"+"\n";
- 					} else {
- 						Integer arraySize = arrayLocation.getDeclaration().getCapacity();
- 						Integer correctBase = loc.getOffset()-(4*(arraySize-1));
- 						movl = "\t"+"movl "+correctBase+"(%ebp,%ecx,4), %eax"+"\n";
- 					}
- 					return movIndex+movl+leave+ret;
+ 					movl = generateCodeForMoveVarArrayLocationToRegister((VarArrayLocation)loc,"eax","ecx");
  				}
  			}
+ 			return movl+leave+ret;
  		} else {
  			return leave+ret;
  		}
@@ -886,15 +616,20 @@ public class AssemblerCodeGenerator {
  			ThreeAddressStatement threeStmt = (ThreeAddressStatement)stmt;
  			Expression expression1 = threeStmt.getExpressionOne();
  			Expression expression2 = threeStmt.getExpressionTwo();
- 			String stringExpr1 = "";
  			String stringExpr2 = "";
- 			String mov1 = "\t"+"movl ";
+ 			String mov1;
+ 			String registerToMove1 = "";
+ 			if (needsMakeDivision(instructionName)) {
+ 				registerToMove1="eax";
+ 			} else {
+ 				registerToMove1="ebx";
+ 			}
  			String ins = "\t"+instructionName+" ";
  			String mov2 = "\t"+"movl ";
  			boolean considerIns = false;
  			if (expression1 instanceof Literal) {
- 				// The expression one is a literal
- 				stringExpr1 = "$"+expression1.toString();
+ 				// The expression one is a literal, so move it to a register
+ 				mov1 = generateCodeForMoveLiteralToRegister((Literal)expression1,registerToMove1);
  				if (expression2 instanceof Literal) {
  					// The expression two is a literal
  					stringExpr2 = "$"+expression2.toString();
@@ -913,13 +648,13 @@ public class AssemblerCodeGenerator {
  						// The expression location is a var array location
  						VarArrayLocation arrayLocation2 = (VarArrayLocation)location2;
  						Expression index2 = arrayLocation2.getExpression();
- 						String movIndex2 = "\t"+"movl ";
+ 						String movIndex2= "";
  						if (index2 instanceof Literal) {
  							// The index is a literal
- 							movIndex2 += "$"+((IntLiteral)index2).getIntegerValue()+", %edx"+"\n";
+ 							movIndex2 = generateCodeForMoveLiteralToRegister((Literal)index2,"edx");
  						} else {
  							// The index is stored in a location
- 							movIndex2 += ((Location)index2).getOffset()+"(%ebp), %edx"+"\n";
+ 							movIndex2 = generateCodeForMoveVarLocationToRegister((VarLocation)index2,"edx");
  						}
  						ins = movIndex2;
  						if (locDeclaration2.isGlobal()) {
@@ -941,36 +676,10 @@ public class AssemblerCodeGenerator {
  				DeclarationIdentifier locDeclaration1 = location1.getDeclaration();
  				if (location1 instanceof VarLocation) {
  					// The expression location is a var location
- 					if (locDeclaration1.isGlobal()) {
- 						stringExpr1 = locDeclaration1.getId();
- 					} else {
-						stringExpr1 = location1.getOffset()+"(%ebp)"; 
- 					}
+ 					mov1 = generateCodeForMoveVarLocationToRegister((VarLocation)location1,registerToMove1);
  				} else {
  					// The expression location is a var array location
- 					VarArrayLocation arrayLocation1 = (VarArrayLocation)location1;
- 					Expression index1 = arrayLocation1.getExpression();
- 					String movIndex1 = "\t"+"movl ";
- 					if (index1 instanceof Literal) {
- 						// The index is a literal
- 						movIndex1 += "$"+((IntLiteral)index1).getIntegerValue()+", %ebx"+"\n";
- 					} else {
- 						// The index is stored in a location
- 						movIndex1 += ((Location)index1).getOffset()+"(%ebp), %ebx"+"\n";
- 					}
- 					mov1 = movIndex1;
- 					if (locDeclaration1.isGlobal()) {
- 						mov1 += "\t"+"imull $4, %ebx"+"\n";
- 						mov1 += "\t"+"movl "+locDeclaration1.getId()+"+0(%ebx), %ebx"+"\n";
- 						mov1 += "\t"+"movl ";
- 						stringExpr1 = "%ebx";
- 					} else {
-						Integer arraySize = locDeclaration1.getCapacity();
- 						Integer correctBase = locDeclaration1.getOffset()-(4*(arraySize-1));
- 						mov1 = "\t"+"movl "+correctBase+"(%ebp,%ebx,4), %ebx"+"\n";
- 						mov1 += "\t"+"movl";
- 						stringExpr1 = "%ebx";
- 					}
+ 					mov1 = generateCodeForMoveVarArrayLocationToRegister((VarArrayLocation)location1,registerToMove1,"ebx");
  				}
  				if (expression2 instanceof Literal) {
  					// The expression two is a literal
@@ -990,13 +699,13 @@ public class AssemblerCodeGenerator {
  						// The expression location is a var array location
  						VarArrayLocation arrayLocation2 = (VarArrayLocation)location2;
  						Expression index2 = arrayLocation2.getExpression();
- 						String movIndex2 = "\t"+"movl ";
+ 						String movIndex2= "";
  						if (index2 instanceof Literal) {
  							// The index is a literal
- 							movIndex2 += "$"+((IntLiteral)index2).getIntegerValue()+", %edx"+"\n";
+ 							movIndex2 = generateCodeForMoveLiteralToRegister((Literal)index2,"edx");
  						} else {
  							// The index is stored in a location
- 							movIndex2 += ((Location)index2).getOffset()+"(%ebp), %edx"+"\n";
+ 							movIndex2 = generateCodeForMoveVarLocationToRegister((VarLocation)index2,"edx");
  						}
  						ins = movIndex2;
  						if (locDeclaration2.isGlobal()) {
@@ -1027,7 +736,6 @@ public class AssemblerCodeGenerator {
  					prevIns = ins;
  				}
  				String clearDiv = "\t"+"movl $0, %edx"+"\n";
- 				mov1 += stringExpr1+", %eax"+"\n";
  				String movDiv = "\t"+"movl "+stringExpr2+", %ecx"+"\n";
  				ins = "\t"+"idivl %ecx \n";
  				if (instructionName=="idivl") {
@@ -1039,7 +747,6 @@ public class AssemblerCodeGenerator {
  				}
  				return mov1+prevIns+movDiv+clearDiv+ins+mov2;
  			} else {
- 				mov1 += stringExpr1+", %ebx"+"\n";
  				ins += stringExpr2+", %ebx"+"\n";
  				mov2 += "%ebx, "+result.getOffset()+"(%ebp)"+"\n";
  				return mov1+ins+mov2;
@@ -1060,6 +767,13 @@ public class AssemblerCodeGenerator {
  			String ins = "\t"+instructionName+" "+stringExpr+", "+result.getOffset()+"(%ebp)"+"\n";
  			return ins;	
  		}
+ 	}
+
+ 	/**
+ 	 * Returns true if the given instruction needs to perform a div
+ 	 */
+ 	private static boolean needsMakeDivision(String instructionName) {
+ 		return (instructionName=="idivl"||instructionName=="mod"); 
  	}
 
  	/**
@@ -1152,7 +866,7 @@ public class AssemblerCodeGenerator {
 	/**
  	 * Generate code for move a CTds literal to a register
  	 */
-	public static String generateCodeForMoveLiteralToRegister(Literal literal,String registerName) {
+	private static String generateCodeForMoveLiteralToRegister(Literal literal,String registerName) {
 		String movl;
 		if (literal instanceof IntLiteral) {
 			// The literal is an int literal
@@ -1177,5 +891,125 @@ public class AssemblerCodeGenerator {
  		}
  		return movl;
 	}
+
+	/**
+ 	 * Generate code for move a given var location to a register
+ 	 */
+ 	private static String generateCodeForMoveVarLocationToRegister(VarLocation loc, String registerName) {
+ 		DeclarationIdentifier locDeclaration = loc.getDeclaration();
+ 		String movl;
+ 		if (locDeclaration.isGlobal()) {
+ 			movl = "\t"+"movl "+locDeclaration.getId()+", %"+registerName+"\n";
+ 		} else {
+			movl = "\t"+"movl "+loc.getOffset()+"(%ebp), %"+registerName+"\n";
+ 		}
+ 		return movl;
+ 	}
+
+ 	/**
+ 	 * Generate code for move a given var array location to registerToSave using registerForIndex
+ 	 * for store teporally the index
+ 	 */
+ 	private static String generateCodeForMoveVarArrayLocationToRegister(VarArrayLocation arrayLoc, String registerToSave, String registerForIndex) {
+ 	 	DeclarationIdentifier declIdentifier = arrayLoc.getDeclaration();
+ 	 	Expression index = arrayLoc.getExpression();
+ 		String movl="";
+ 		String movIndex = "";
+ 		if (index instanceof Literal) {
+ 			// The index is a literal
+ 			movIndex = generateCodeForMoveLiteralToRegister((Literal)index,registerForIndex);
+ 		} else {
+ 			// The index is stored in a location
+ 			movIndex = generateCodeForMoveVarLocationToRegister((VarLocation)index,registerForIndex);
+ 		}
+ 		if (declIdentifier.isGlobal()) {
+ 			String mult = "\t"+"imull $4, %"+registerForIndex+"\n";
+ 			movl = "\t"+"movl "+declIdentifier.getId()+"+0(%"+registerForIndex+"), %"+registerToSave+"\n";
+ 		} else {
+ 			Integer arraySize = declIdentifier.getCapacity();
+ 			Integer correctBase = arrayLoc.getOffset()-(4*(arraySize-1));
+ 			movl = "\t"+"movl "+correctBase+"(%ebp,%"+registerForIndex+",4), %"+registerToSave+"\n";
+ 		}
+ 		return movIndex+movl;
+ 	 }
+
+ 	 /**
+ 	  * Generate code for apply a unary instruction to a given register
+ 	  */
+ 	 private static String generateCodeForUnaryInstructionToRegister(String instructionName, String registerName) {
+ 	 	return "";
+ 	 }
+
+ 	 /**
+ 	  * Generate code for apply a binary instruction with a literal as operand
+ 	  * to a given register
+ 	  */
+ 	 private static String generateCodeForBinaryInstructionToRegister(String instructionName, Literal operand, String registerName) {
+ 	 	String ins;
+		if (operand instanceof IntLiteral) {
+			// The literal is an int literal
+ 			ins = "\t"+instructionName+" $"+((IntLiteral)operand).getIntegerValue()+", %"+registerName+"\n";
+ 		} else if (operand instanceof BooleanLiteral){
+ 			// The literal is a boolean literal
+ 			BooleanLiteral boolLiteral = (BooleanLiteral)operand;
+ 			if (boolLiteral.getBooleanValue()) {
+ 				ins = "\t"+instructionName+" $1, %"+registerName+"\n";
+ 			} else {
+ 				ins = "\t"+instructionName+" $0, %"+registerName+"\n";
+ 			}
+ 		} else {
+			// The literal is a float literal
+ 			FloatLiteral floatLiteral = (FloatLiteral)operand;
+ 			Integer integer = Float.floatToRawIntBits(floatLiteral.getFloatValue());
+ 			String labelName = "."+generateLabel();
+ 			String floatLabel = labelName+":\n";
+ 			floatLabel += "\t"+".long "+integer+"\n";
+ 			floatLabels.add(floatLabel);
+ 			ins = "\t"+instructionName+" "+labelName+", %"+registerName+"\n";
+ 		}
+ 		return ins;
+ 	 }
+
+ 	 /**
+ 	  * Generate code for apply a binary instruction with a var location as operand
+ 	  * to a given register
+ 	  */
+ 	 private static String generateCodeForBinaryInstructionToRegister(String instructionName, VarLocation operand, String registerName) {
+ 		DeclarationIdentifier locDeclaration = operand.getDeclaration();
+ 		String ins = "\t"+instructionName+" ";
+ 		if (locDeclaration.isGlobal()) {
+ 			ins += locDeclaration.getId()+", %"+registerName+"\n";
+ 		} else {
+			ins += operand.getOffset()+"(%ebp), %"+registerName+"\n";
+ 		}
+ 		return ins;
+ 	 }
+
+ 	  /**
+ 	  * Generate code for apply a binary instruction with a var array location as operand
+ 	  * to a given register
+ 	  */
+ 	 private static String generateCodeForBinaryInstructionToRegister(String instructionName, VarArrayLocation operand, String registerForIndex,String registerName) {
+ 		DeclarationIdentifier locDeclaration = operand.getDeclaration();
+ 		Expression index = operand.getExpression();
+ 		String movIndex;
+ 		String ins;
+ 		if (index instanceof Literal) {
+ 			// The index is a literal
+ 			movIndex = generateCodeForMoveLiteralToRegister((Literal)index,registerForIndex);
+ 		} else {
+ 			// The index is stored in a location
+ 			movIndex = generateCodeForMoveVarLocationToRegister((VarLocation)index,registerForIndex);
+ 		}
+ 		if (locDeclaration.isGlobal()) {
+ 			ins = "\t"+"imull $4, %edx"+"\n";
+ 			ins += "\t"+instructionName+" "+locDeclaration.getId()+"+0(%"+registerForIndex+"), %"+registerName+"\n";
+ 		} else {
+			Integer arraySize = locDeclaration.getCapacity();
+ 			Integer correctBase = locDeclaration.getOffset()-(4*(arraySize-1));
+ 			ins = "\t"+instructionName+" "+correctBase+"(%ebp,%"+registerForIndex+",4), %"+registerName+"\n";
+ 		}
+ 		return movIndex+ins;
+ 	 }
 
 }
