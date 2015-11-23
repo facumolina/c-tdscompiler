@@ -395,7 +395,9 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		statementsCounter++;
 
 		int beforeEvaluateExpression = amountOfStatements();
-		
+		Label toJumpAfterBlock = new Label(beforeEvaluateExpression); 
+		inLabels.push(toJumpAfterBlock);
+
 		// Create an expression for compare if the location of
 		// initial variable is less or equal than the expression
 		Expression comparationExpression = new BinOpExpr(temporalLocation,BinOpType.LEQ,stmt.getConditionExpression(),0,0);
@@ -422,7 +424,6 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 
 		// Jump to the comparation for cycle again
 		Label afterBlockLabel = new Label(amountOfStatements());
-		Label toJumpAfterBlock = new Label(beforeEvaluateExpression); 
 		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterBlockLabel,toJumpAfterBlock);
 		intermediateCodeStatements.add(jumpICStmt);
 		statementsCounter++; 
@@ -433,9 +434,11 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		statementsCounter++;
 
 		labelToJump.setNumber(amountOfStatements()); 
-		if (!outLabels.isEmpty()) {
+		/*if (!outLabels.isEmpty()) {
 			outLabels.pop();
-		}
+		}*/
+		inLabels.pop();
+		outLabels.pop();
 		return null;
 	}
 
@@ -445,10 +448,12 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	public Location visit(WhileStatement stmt){
 		// Add a label instruction 
 		int amountOfStatementsBeforeConditionEval = amountOfStatements();
-
 		IntermediateCodeStatement labelICStmt = new OneAddressStatement(IntermediateCodeInstruction.LABEL,new Label(amountOfStatements()),new Label(amountOfStatements()));
 		intermediateCodeStatements.add(labelICStmt);
 		statementsCounter++;
+
+		Label conditionEvalLabel = new Label(0);
+		inLabels.push(conditionEvalLabel);
 
 		Location temporalLocation = stmt.getCondition().accept(this);
 		Expression locationExpression;
@@ -476,7 +481,8 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 
 		// After the block, jump to the condition evaluation label
 		Label afterBlockLabel = new Label(amountOfStatements());
-		Label conditionEvalLabel = new Label(label.getNumber()-(amountOfStatementsAfterConditionEval-amountOfStatementsBeforeConditionEval));
+		//Label conditionEvalLabel = new Label(label.getNumber()-(amountOfStatementsAfterConditionEval-amountOfStatementsBeforeConditionEval));
+		conditionEvalLabel.setNumber(label.getNumber()-(amountOfStatementsAfterConditionEval-amountOfStatementsBeforeConditionEval));
 		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,afterBlockLabel,conditionEvalLabel);
 		intermediateCodeStatements.add(jumpICStmt);
 		statementsCounter++;
@@ -486,6 +492,7 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 		intermediateCodeStatements.add(labelICStmt2);
 		statementsCounter++;
 
+		inLabels.pop();
 		outLabels.pop();
 		return null;
 	}
@@ -506,6 +513,11 @@ public class IntermediateCodeGeneratorVisitor implements ASTVisitor<Location> {
 	 * Visit continue statement
 	 */
 	public Location visit(ContinueStatement stmt) {
+		Label label = new Label(amountOfStatements());
+		Label labelToJump = inLabels.peek();
+		IntermediateCodeStatement jumpICStmt = new OneAddressStatement(IntermediateCodeInstruction.JUMP,label,labelToJump);
+		intermediateCodeStatements.add(jumpICStmt);
+		statementsCounter++;
 		return null;
 	}
 	
