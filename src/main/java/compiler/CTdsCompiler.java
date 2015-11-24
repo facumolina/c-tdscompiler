@@ -120,7 +120,7 @@ public class CTdsCompiler {
  		Process p;
  		try {
  			String[] envs;	
- 			p = Runtime.getRuntime().exec("gcc assembler.s libtestCTDS.c -o exec",null,new File("/home/facu/Documentos/compiladores/c-tdscompiler/"));
+ 			p = Runtime.getRuntime().exec("gcc assembler.s -o exec",null,new File(System.getProperty("user.dir")));
  			p.waitFor();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "";			
