@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{flushend}
+\usepackage{verbatim}
+\usepackage{syntax}
+\usepackage{geometry}
+\geometry{margin=0.5in}
+\author{Facundo Molina}
+
+
+\begin{document}
+\title{Proyecto Compiladores: CTds Compiler}
+\date{Noviembre, 2015}
+\maketitle
+
+\section{Introducción}
+\ \ El proyecto consistió en el diseño e implementación de un compilador para el lenguaje CTds, un lengauge de programación simple muy similar al lenguaje C.  En este documento se presentará la gramática del lenguaje CTds, y luego se dará una descripción de cada una de las etapas del desarrollo del compilador, explicando las decisiones de diseño más relevantes.
+
+\section{Gramática del lenguaje CTds}
+
+\begin{grammar}
+<program> $\rightarrow$ <class_decl> $^{+}$
+
+<class_decl> $\rightarrow$ \textbf{class} <id> `{' <field_decl>$^{*}$ <method_decl>$^{*}$ `}'
+
+<field_decl> $\rightarrow$ <type> $\lbrace$ <id> $\mid$ <id> `[' <int_literal> `]' $\rbrace ^{+} ,$ `;'
+
+<method_decl> $\rightarrow$ $\lbrace$ <type> $\mid$ \textbf{void} $\rbrace$ <id> `(' \Big[ $ \lbrace$ <type> <id> $\rbrace ^{+} , $ \Big] `)' <body>
+
+<body> $\rightarrow$ <block>
+\alt \textbf{extern} `;'
+
+<block> $\rightarrow$ `{'  <field_decl>$^{*}$ <statement>$^{*}$ `}'
+
+<type> $\rightarrow$ \textbf{int} $\mid$ \textbf{float} $\mid$ \textbf{boolean}
+ 
+<statement> $\rightarrow$ <location> <assign_op> <expr> `;'
+\alt <method_call> `;'
+\alt \textbf{if} `(' <expr> `)' <block> \big[ \textbf{else} <block> \big]
+\alt \textbf{for} <id> `=' <expr> `,' <expr> <block> 
+\alt \textbf{while} <expr> <block> 
+\alt \textbf{return} \big[ <expr> \big] `;'
+\alt \textbf{break} `;'
+\alt \textbf{continue} `;'
+\alt `;'
+\alt <block> 
+
+<assign_op> $\rightarrow$ `=' $\mid$ `+=' $\mid$ `-='
+
+<method_call> $\rightarrow$ <id> $\lbrace$ .<id> $\rbrace ^{*}$ `(' \big[ <expr>$^{+},$ \big] `)'
+
+<location> $\rightarrow$ <id> $\lbrace$ .<id> $\rbrace ^{*}$ 
+\alt <id> $\lbrace$ .<id> $\rbrace ^{*}$ `[' <expr> `]'
+
+<expr> $\rightarrow$ <location>
+\alt <method_call>
+\alt <literal>
+\alt <expr> <bin_op> <expr>
+\alt `-' <expr>
+\alt `!' <expr>
+\alt `(' <expr> `)'
+
+<bin_op> $\rightarrow$ <arith_op> $\mid$ <rel_op> $\mid$ <eq_op> $\mid$ <cond_op>
+
+<arith_op> $\rightarrow$ `+' $\mid$ `-' $\mid$ `*' $\mid$ `/' $\mid$ `\%'
+
+<rel_op> $\rightarrow$ `<' $\mid$ `>' $\mid$ `<=' $\mid$ `>='
+
+<eq_op> $\rightarrow$ `==' $\mid$ `!='
+
+<cond_op> $\rightarrow$ `&&' $\mid$ `||'
+
+<literal> $\rightarrow$ <int_literal> $\mid$ <float_literal> $\mid$ <bool_literal>
+
+<id> $\rightarrow$ <alpha> <alpha_num>$^{*}$
+
+<alpha_num> $\rightarrow$ <alpha> $\mid$ <digit> $\mid$ `_'
+
+<alpha> $\rightarrow$ `a' $\mid$ `b' $\mid$ ... $\mid$ `z' $\mid$ `A' $\mid$ `B' $\mid$ ... $\mid$ `Z'
+
+<digit> $\rightarrow$ `0' $\mid$ `1' $\mid$ `2' $\mid$ ... $\mid$ `9'
+
+<int_literal> $\rightarrow$ <digit> <digit> $^{*}$
+
+<bool_literal> $\rightarrow$ \textbf{true} $\mid$ \textbf{false}
+
+<float_literal> $\rightarrow$ <digit> <digit> $^{*}$ `.' <digit> <digit> $^{*}$
+
+\end{grammar}
+
+\section{Etapas}
+
+\subsection{Análisis Léxico}
+
+\subsection{Análisis Sintáctico}
+
+\subsection{Análisis Semántico}
+
+\subsection{Generación de Código Intermedio}
+
+\subsection{Generación de Código Assembler}
+
+\subsection{Análisis y Optimización}
+
+\section{Conclusión}
+
+
+\end{document}
