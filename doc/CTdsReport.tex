@@ -11,7 +11,6 @@
 \geometry{margin=0.5in}
 \author{Facundo Molina}
 
-
 \begin{document}
 \title{Proyecto Compiladores: CTds Compiler}
 \date{Noviembre, 2015}
@@ -96,13 +95,43 @@
 
 \subsection{Análisis Léxico}
 
-\subsection{Análisis Sintáctico}
+\ \ \ \ El objetivo de esta etapa fue construir el analizador léxico del lenguaje, el cuál a partir del código fuente de un programa CTds debe reconocer que todos los símbolos son correctos, y retornar \textit{tokens}. Comunmente estos \textit{tokens} representan una clase de símbolos del lenguaje, de manera que si, por ejemplo, los símbolos `+',`-',`*',`/' y `\%' forman parte del lenguaje, podemos agruparlos en la clase de símbolos ``Operadores Aritméticos'', y expresarlo en el analizador léxico de la siguiente manera:
+\\
 
+\includegraphics[width=18.5cm,height=2.8cm]{lexical1.png} \\ 
+ 
+Donde para cada uno de los operadores aritméticos se retorna el \textit{token} \textbf{ARITHMETHICAL_OP}. Esta codificación se puede repetir análogamente para el resto de clases de símbolos del lenguaje (operadores relacionales, operadores lógicos, palabras reservadas, etc). Como para etapas posteriores es conveniente tener identificados cada uno de los símbolos, es decir, saber si el operador que se está utilizando es exactamente `+', `-' o cualquiera de los otros, se optó por tener \textit{tokens} individuales por cada uno de los símbolos:
+\\
+
+\includegraphics[width=17cm,height=2.8cm]{lexical2.png} \\ 
+
+Y del mismo modo, cada símbolo del lenguaje (operadores relacionales, palabras reservadas), tiene asociado un \textit{token} propio.
+
+La herramienta utilizada para generar el analizador léxico fue JFlex, la cuál a partir de una especificación como la presentada en el código previo reconoce los símbolos y retorna el \textit{token} correspondiente para cada uno de ellos. Por ejemplo, para una cadena de símbolos que represente una asignación:
+\begin{center}
+	$x = y+2 ;$
+\end{center}
+Se generaría la cadena de \textit{tokens}:
+\begin{center}
+	$ID \ ASSIGN\_OP \ ID \ PLUS \ INT\_LITERAL \ SEMI\_COLON$
+\end{center}
+ 
+
+\subsection{Análisis Sintáctico}
+\ \ \ \ A partir de los \textit{tokens} que se obtienen al finalizar el análisis léxico, se realiza el análisis sintáctio, el cuál consiste en reconocer que las frases están construdas correctamente de acuerdo al lenguaje, es decir, que los símbolos aparecen en el orden correcto. Construye el árbol de parsing, el cuál es generado por el parser del lenguaje.
+ 
 \subsection{Análisis Semántico}
+
+\begin{itemize}
+\item Chequeo de declaraciones
+\item Chequeo de tipos
+\end{itemize}
+
+\subsection{Intérprete}
 
 \subsection{Generación de Código Intermedio}
 
-\subsection{Generación de Código Assembler}
+\subsection{Generación de Código Objeto}
 
 \subsection{Análisis y Optimización}
 
