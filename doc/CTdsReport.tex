@@ -17,9 +17,11 @@
 \maketitle
 
 \section{Introducción}
+\label{sec:intro}
 \ \ El proyecto consistió en el diseño e implementación de un compilador para el lenguaje CTds, un lengauge de programación simple muy similar al lenguaje C.  En este documento se presentará la gramática del lenguaje CTds, y luego se dará una descripción de cada una de las etapas del desarrollo del compilador, explicando las decisiones de diseño más relevantes.
 
 \section{Gramática del lenguaje CTds}
+\label{sec:gramatica}
 
 \begin{grammar}
 <program> $\rightarrow$ <class_decl> $^{+}$
@@ -91,9 +93,11 @@
 
 \end{grammar}
 
-\section{Etapas}
+\section{Etapas} 
+\label{sec:etapas}
 
-\subsection{Análisis Léxico}
+\subsection{Análisis Léxico} 
+\label{subsec:lexico}
 
 \ \ \ \ El objetivo de esta etapa fue construir el analizador léxico del lenguaje, el cuál a partir del código fuente de un programa CTds debe reconocer que todos los símbolos son correctos, y retornar \textit{tokens}. Comunmente estos \textit{tokens} representan una clase de símbolos del lenguaje, de manera que si, por ejemplo, los símbolos `+',`-',`*',`/' y `\%' forman parte del lenguaje, podemos agruparlos en la clase de símbolos ``Operadores Aritméticos'', y expresarlo en el analizador léxico de la siguiente manera:
 \\
@@ -115,27 +119,56 @@ Se generaría la cadena de \textit{tokens}:
 \begin{center}
 	$ID \ ASSIGN\_OP \ ID \ PLUS \ INT\_LITERAL \ SEMI\_COLON$
 \end{center}
- 
 
-\subsection{Análisis Sintáctico}
-\ \ \ \ A partir de los \textit{tokens} que se obtienen al finalizar el análisis léxico, se realiza el análisis sintáctio, el cuál consiste en reconocer que las frases están construdas correctamente de acuerdo al lenguaje, es decir, que los símbolos aparecen en el orden correcto. Construye el árbol de parsing, el cuál es generado por el parser del lenguaje.
- 
-\subsection{Análisis Semántico}
+\subsubsection{Testing}
+
+\ \ \ \ Fueron implementados una serie de tests para el analizador léxico, proporcionando en un archivo secuencias de símbolos válidos para el lenguaje y en otro archivo la secuencia de tokens esperados. Y luego del análisis los tokens retornados debían ser exactamente los mismos que los tokens esperados. Se implementaron tests de acuerdo a la clase de tokens a reconocer, es decir, para \textit{literales}, \textit{operadores}, \textit{keywords}, \textit{delimitadores}, \textit{identificadores}, etc.
+
+\subsection{Análisis Sintáctico} 
+\label{subsec:sintactico}
+\ \ \ \ A partir de los \textit{tokens} que se obtienen al finalizar el análisis léxico, se realiza el análisis sintáctico, el cuál consiste en reconocer que las frases están construidas correctamente de acuerdo a la especificación del lenguaje, es decir, que los símbolos aparecen en el orden correcto. 
+
+Para reconocer las fresas es necesario un parser, y la herramienta utilizada para generarlo fue CUP. A partir de la especificación de la gramática, en una forma muy similar a la presentada en la sección~\ref{sec:gramatica}, CUP puede generar el parser del lenguaje. La salida de este parser es el árbol de parsing, donde cada uno de los nodos se corresponde con algún símbolo de la gramática.
+\\
+
+\includegraphics[width=18cm,height=6.5cm]{sintactic1.png} \\ 
+
+En la figura se observa la parte de la definición de la gramática correspondiende a ``statements''. Si bien las tres primeras sentencias, correspondientes a asignaciones, podrían haber sido expresadas en sólo una con un operador genérico, ya que lo único que cambia entre ellas el operador de asignación, se realizó de esta manera para obtener mayor precisión a la hora de constuir el árbol de parsing. A modo de ejemplo, para la cadena de tokens del ejemplo anterior:
+\begin{center}
+	$ID \ ASSIGN\_OP \ ID \ PLUS \ INT\_LITERAL \ SEMI\_COLON$
+\end{center}
+correspondiente a la primera regla, 	en el árbol de parsing tendríamos:
+\\
+\begin{center}
+\includegraphics[width=13cm,height=6.5cm]{ctdsparsing.png} \\
+\end{center}
+
+De haber tenido la tres reglas generalizadas en sólo una, se debería haber hecho algún procesamiento extra para determinar de qué operador se trataba. En esta etapa la mayoría de las decisiones tuvieron que ver con esa misma idea, tratar de tener la mayor información posible a la hora de constuir el árbol.
+
+\subsubsection{Testing}
+\ \ \ \ Los tests implementados para comprobar el correcto funcionamiento del parser, fueron realizados a partir de archivos con cadenas de texto, algunas pertenecientes al lenguaje CTds y otras no pertenecientes al lenguaje (con errores sintácticos), y verificando que para las pertenecientes al lenguaje el parser la reconoce correctamente, y para aquellas no pertenecientes se obtienen errores. 
+
+\subsection{Análisis Semántico} 
+\label{subsec:semantico}
 
 \begin{itemize}
 \item Chequeo de declaraciones
 \item Chequeo de tipos
 \end{itemize}
 
-\subsection{Intérprete}
+\subsection{Intérprete} 
+\label{subsec:interprete}
 
-\subsection{Generación de Código Intermedio}
+\subsection{Generación de Código Intermedio} 
+\label{subsec:genci}
 
-\subsection{Generación de Código Objeto}
+\subsection{Generación de Código Objeto} 
+\label{subsec:genco}
 
-\subsection{Análisis y Optimización}
+\subsection{Análisis y Optimización} 
+\label{subsec:opt}
 
-\section{Conclusión}
-
+\section{Conclusión} 
+\label{sec:concl}
 
 \end{document}
