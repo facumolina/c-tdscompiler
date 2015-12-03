@@ -5,6 +5,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{flushend}
+\usepackage{indentfirst}
 \usepackage{verbatim}
 \usepackage{syntax}
 \usepackage{geometry}
@@ -18,7 +19,7 @@
 
 \section{Introducción}
 \label{sec:intro}
-\ \ El proyecto consistió en el diseño e implementación de un compilador para el lenguaje CTds, un lengauge de programación simple muy similar al lenguaje C.  En este documento se presentará la gramática del lenguaje CTds, y luego se dará una descripción de cada una de las etapas del desarrollo del compilador, explicando las decisiones de diseño más relevantes.
+El proyecto consistió en el diseño e implementación de un compilador para el lenguaje CTds, un lengauge de programación simple muy similar al lenguaje C.  En este documento se presentará la gramática y la semántica del lenguaje CTds, y luego se dará una descripción de cada una de las etapas del desarrollo del compilador, explicando las decisiones de diseño más relevantes.
 
 \section{Gramática del lenguaje CTds}
 \label{sec:gramatica}
@@ -93,13 +94,74 @@
 
 \end{grammar}
 
+\section{Semántica del lenguaje CTds}
+\label{sec:semanticactds}
+
+En esta sección se van a detallar las decisiones de más importancia con respecto a la semántica del lenguaje.
+
+\subsection{General}
+\label{subsec:general}
+
+Si bien en la gramática un programa CTds consiste de una lista de declaraciones de clases , y esto es tratado de esa forma en las en las etapas de análisis léxico y sintáctico, a partir de la etapa de análisis semántico se considera que un programa tiene sólo una clase. Esta clase es una lista de declaraciones de atributos seguida de una lista de declaraciones de métodos. Los atributos son variables globales que pueden ser accedidos por cualquier método de la clase. Los métodos representan tanto funcinoes como procedimientos. Además debe haber exactamente un método \textbf{main} sin argumentos, el cuál será el método por donde comenzará la ejecución.
+
+\subsection{Tipos}
+
+Los tipos básicos son \textbf{int}, \textbf{float} y \textbf{boolean}. Se permiten definir arreglos (sólo unidimensionales y de tamaño fijo) para cada uno de los tipos básicos, y son indexados de $0$ a $N-1$, donde $N>0$ es el tamaño. 
+
+Los atributos de una clase pueden de ser de tipos de básicos o arreglos, al igual que las variables locales de cualquier bloque.
+
+\subsection{Alcance y visibilidad de los identificadores}
+\label{identificadores}
+
+Todos los identificadores deben ser definidos antes de ser utilizados. 
+
+En un punto de un programa CTds existen al menos dos \textit{scopes} válidos, el global (identificados de atributos y métodos de la clase) y el local a un método (identificadores de variables declaradas en el cuerpo). Dentro de los métodos se pueden introducir \textit{scopes} locales mediante bloques ($\left\langle block \right\rangle$) anidados. Este anidamiento puede causar que un identificador definido en un bloque posterior pueda ocultar alguno definido con el mismo nombre en un bloque previo.
+
+Los nombres de los identificadores son únicos en cada scope. Aunque puede haber atributos o variables con el mismo nombre que un método sin problemas.
+
+\subsection{Locaciones de memoria}
+\label{locaciones}
+
+Sólo hay dos clases de locaciones: variables y arreglos (locales y globales). Cada una tiene un tipo. Los arreglos son alocados en el espacio de datos estático del programa (frame de ejecución). 
+
+\subsection{Asignaciones}
+\label{asignaciones}
+
+Las asignaciones pueden ser a variables de tipos de básicos o a posiciones de un arreglo. La semántica de las asignaciones define la copia del valor. Una asignación es válida si la locación y la expresión que se intenta asignar tienen el mismo tipo. Las asignaciones de incremento y decremento solo son permitidas para tipos de datos numéricos.
+
+\subsection{Invocación y Retorno de Métodos}
+\label{metodos}
+
+La invocación de métodos involucra: pasar el valor de los parámetros actuales a los parámetros formales, ejecutar el cuerpo del método invocado y retornar del método invocado (posiblemente con un resultado).
+
+Los argumentos son pasados por valor. Los parámeotros formales son considerados como variables locales del método. 
+
+Tanto los parámeotros como el tipo de retorno de un método deben ser de tipo básico. Excepto los métodos que retornan \textbf{void}.
+
+Los métodos que retornan \textbf{void} solamente pueden ser utilizados como una sentencia y además al final deben tener una sentencia \textbf{return} sin expresión. 
+
+Un método que retorna un resultado puede ser invocado como cualquier expresión. Retornan solo si alcanzan una sentencia \textbf{return} con una expresión del mismo tipo que el tipo de retorno del método.
+
+\subsection{Sentencias de Control}
+\label{control}
+
+Las sentencias \textbf{if} y \textbf{while} tienen la semántica estándar. 
+
+En la sentencia \textbf{for} el $\left\langle id \right\rangle$  es la variable índice del ciclo, cuyo valor inicial viene dado por la evualuación de la primera $\left\langle expr \right\rangle$. La segunda $\left\langle expr \right\rangle$ es el valor final de la variable índice, es decir se cicla mientras el valor de $\left\langle id \right\rangle$ sea menor o igual al valor de la segunda $\left\langle expr \right\rangle$. Ambas expresiones deben ser de tipo \textbf{int}. 
+
+Las expresiones siguen las reglas usuales de evaluación. Una locación (variables y elementos de un arreglo) es evaluada al valor que contiene en memoria. Los literales enteros, reales y booleanos evaluan a su valor. En cuanto a los operadores todos tienen el significado usual, teniendo en cuenta de que para los operadores binarios ambos operandos deben ser del mismo tipo, y los operadores relaciones o de igualdad deben devolver un resultado de tipo \textbf{boolean}
+
+\subsection{Llamadas a funciones externas}
+\label{externas}
+
+Se pueden declarar métodos externos reemplazando su cuerpo por la palabra reservada \textbf{extern}.
 \section{Etapas} 
 \label{sec:etapas}
 
 \subsection{Análisis Léxico} 
 \label{subsec:lexico}
 
-\ \ \ \ El objetivo de esta etapa fue construir el analizador léxico del lenguaje, el cuál a partir del código fuente de un programa CTds debe reconocer que todos los símbolos son correctos, y retornar \textit{tokens}. Comunmente estos \textit{tokens} representan una clase de símbolos del lenguaje, de manera que si, por ejemplo, los símbolos `+',`-',`*',`/' y `\%' forman parte del lenguaje, podemos agruparlos en la clase de símbolos ``Operadores Aritméticos'', y expresarlo en el analizador léxico de la siguiente manera:
+El objetivo de esta etapa fue construir el analizador léxico del lenguaje, el cuál a partir del código fuente de un programa CTds debe reconocer que todos los símbolos son correctos, y retornar \textit{tokens}. Comunmente estos \textit{tokens} representan una clase de símbolos del lenguaje, de manera que si, por ejemplo, los símbolos `+',`-',`*',`/' y `\%' forman parte del lenguaje, podemos agruparlos en la clase de símbolos ``Operadores Aritméticos'', y expresarlo en el analizador léxico de la siguiente manera:
 \\
 
 \includegraphics[width=18.5cm,height=2.8cm]{lexical1.png} \\ 
@@ -122,18 +184,18 @@ Se generaría la cadena de \textit{tokens}:
 
 \subsubsection{Testing}
 
-\ \ \ \ Fueron implementados una serie de tests para el analizador léxico, proporcionando en un archivo secuencias de símbolos válidos para el lenguaje y en otro archivo la secuencia de tokens esperados. Y luego del análisis los tokens retornados debían ser exactamente los mismos que los tokens esperados. Se implementaron tests de acuerdo a la clase de tokens a reconocer, es decir, para \textit{literales}, \textit{operadores}, \textit{keywords}, \textit{delimitadores}, \textit{identificadores}, etc.
+Fueron implementados una serie de tests para el analizador léxico, proporcionando en un archivo secuencias de símbolos válidos para el lenguaje y en otro archivo la secuencia de tokens esperados. Y luego del análisis los tokens retornados debían ser exactamente los mismos que los tokens esperados. Se implementaron tests de acuerdo a la clase de tokens a reconocer, es decir, para \textit{literales}, \textit{operadores}, \textit{keywords}, \textit{delimitadores}, \textit{identificadores}, etc.
 
 \subsection{Análisis Sintáctico} 
 \label{subsec:sintactico}
-\ \ \ \ A partir de los \textit{tokens} que se obtienen al finalizar el análisis léxico, se realiza el análisis sintáctico, el cuál consiste en reconocer que las frases están construidas correctamente de acuerdo a la especificación del lenguaje, es decir, que los símbolos aparecen en el orden correcto. 
+A partir de los \textit{tokens} que se obtienen al finalizar el análisis léxico, se realiza el análisis sintáctico, el cuál consiste en reconocer que las sentencias están construidas correctamente de acuerdo a la especificación del lenguaje, es decir, que los símbolos aparecen en el orden correcto. 
 
 Para reconocer las fresas es necesario un parser, y la herramienta utilizada para generarlo fue CUP. A partir de la especificación de la gramática, en una forma muy similar a la presentada en la sección~\ref{sec:gramatica}, CUP puede generar el parser del lenguaje. La salida de este parser es el árbol de parsing, donde cada uno de los nodos se corresponde con algún símbolo de la gramática.
 \\
 
 \includegraphics[width=18cm,height=6.5cm]{sintactic1.png} \\ 
 
-En la figura se observa la parte de la definición de la gramática correspondiende a ``statements''. Si bien las tres primeras sentencias, correspondientes a asignaciones, podrían haber sido expresadas en sólo una con un operador genérico, ya que lo único que cambia entre ellas el operador de asignación, se realizó de esta manera para obtener mayor precisión a la hora de constuir el árbol de parsing. A modo de ejemplo, para la cadena de tokens del ejemplo anterior:
+En la figura se observa la parte de la definición de la gramática correspondiende a ``statements''. Si bien las tres primeras sentencias, correspondientes a asignaciones, podrían haber sido expresadas en sólo una con un operador genérico, ya que lo único que cambia entre ellas el operador de asignación, se realizó de esta manera para obtener mayor precisión a la hora de constuir el árbol de parsing. A modo de ejemplo, para la cadena de tokens del ejemplo de la sección \ref{subsec:lexico}:
 \begin{center}
 	$ID \ ASSIGN\_OP \ ID \ PLUS \ INT\_LITERAL \ SEMI\_COLON$
 \end{center}
@@ -146,15 +208,27 @@ correspondiente a la primera regla, 	en el árbol de parsing tendríamos:
 De haber tenido la tres reglas generalizadas en sólo una, se debería haber hecho algún procesamiento extra para determinar de qué operador se trataba. En esta etapa la mayoría de las decisiones tuvieron que ver con esa misma idea, tratar de tener la mayor información posible a la hora de constuir el árbol.
 
 \subsubsection{Testing}
-\ \ \ \ Los tests implementados para comprobar el correcto funcionamiento del parser, fueron realizados a partir de archivos con cadenas de texto, algunas pertenecientes al lenguaje CTds y otras no pertenecientes al lenguaje (con errores sintácticos), y verificando que para las pertenecientes al lenguaje el parser la reconoce correctamente, y para aquellas no pertenecientes se obtienen errores. 
+
+Los tests implementados para comprobar el correcto funcionamiento del parser, fueron realizados a partir de archivos con cadenas de texto, algunas pertenecientes al lenguaje CTds y otras no pertenecientes al lenguaje (con errores sintácticos), y verificando que para las pertenecientes al lenguaje el parser la reconoce correctamente, y para aquellas no pertenecientes se obtienen errores. 
 
 \subsection{Análisis Semántico} 
 \label{subsec:semantico}
 
-\begin{itemize}
-\item Chequeo de declaraciones
-\item Chequeo de tipos
-\end{itemize}
+Esta etapa consiste en chequear las reglas semánticas del lenguaje, entre las que se encuentran la compatibilidad de tipos, la correcta declaración y uso de los identificadores, etc. Para cada uno de estos tipos de reglas se implementó un \textit{visitor} del AST generado durante el parsing: 
+
+\subsubsection{Mains}
+\label{mains}
+El visitor \textit{CheckMainVisitor} es el más simple de todos, ya que su objetivo es determinar la cantidad de métodos \textbf{main} para comprobar si hay exactamente un método \textbf{main}, qué es lo esperado, o más de uno. Para implementarlo, sólo es necesario mirar cada nodo del árbol que se corresponda con la declaración de un método y determinar si su identificador es \textbf{main} o no.
+ 
+\subsubsection{Declaraciones}
+\label{subsec:decls}
+
+El visitor \textit{CheckDeclarationVisitor} permite determinar si los identificadores son duplicados o no, si han sido correctamente declarados antes de ser utilizados, etc. La idea es utilizar una tabla de símbolos a modo de pila, donde a medida que se va profundizando un nuevo nivel en el AST (pasamos de una $\left\langle class\_decl \right\rangle$ a una $\left\langle field\_decl \right\rangle$, o de una $\left\langle method\_decl \right\rangle$ a un $\left\langle statement \right\rangle$) de asignación) se va a agregando tal nodo a la pila. El nivel actual es visto como una lista, donde se van agregando los nodos que no representan un nuevo nivel con respecto al actual, si no que están en el mismo \textit{scope}.
+
+\subsubsection{Tipos}
+\label{subsec:tipos}
+
+El visitor \textit{CheckTypeVisitor} determina si los tipos están correctamente utilizados de acuerdo a la semántica: si las asignaciones a locaciones respetan el tipo que fue utilizado en la declaración, si las operaciones son realizadas entre expresiones de tipos equivalentes, si los métodos retornan expresiones del mismo tipo que el que de su declaración, si los parámetros actuales tienen el mismo tipo que los parámetros formales, etc. 
 
 \subsection{Intérprete} 
 \label{subsec:interprete}
