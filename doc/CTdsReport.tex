@@ -14,7 +14,7 @@
 
 \begin{document}
 \title{Proyecto Compiladores: CTds Compiler}
-\date{Noviembre, 2015}
+\date{Diciembre, 2015}
 \maketitle
 
 \section{Introducción}
@@ -155,6 +155,23 @@ Las expresiones siguen las reglas usuales de evaluación. Una locación (variabl
 \label{externas}
 
 Se pueden declarar métodos externos reemplazando su cuerpo por la palabra reservada \textbf{extern}.
+
+\subsection{Reglas extras}
+\label{extra}
+
+Las siguientes son algunas reglas semánticas adicionales:
+\begin{enumerate}
+\item Ningún identificador es declarado dos veces en el mismo bloque.
+\item Ningún identificador es utilizado antes de ser declarado.
+\item Todo programa tiene una única clase, con un único metodo \textbf{main}.
+\item Las invocaciones a métodos respetan la aridad con la que los métodos fueron declarados.
+\item Las invocaciones a métodos utilizadas como expresión retornan un resultado.
+\item La sentencia \textbf{return} solo tiene asociada una expresión si el método retorna un valor, si el método es \textbf{void} no debe tener ninguna.
+\item Un $\left\langle id \right\rangle$ usado como una $\left\langle location \right\rangle$ debe estar declarado como parámetro, o como variable local o global.
+\item La $\left\langle expr \right\rangle$ en una sentencia \textbf{if} o \textbf{while} debe ser \textbf{boolean}.
+\item Las expresiones iniciales y finales de un \textbf{for} deben ser de tipo \textbf{int}.
+\item Las sentencias \textbf{break} y \textbf{continue} solo pueden encontrarse en el cuerpo de un ciclo.
+\end{enumerate} 
 \section{Etapas} 
 \label{sec:etapas}
 
@@ -173,11 +190,11 @@ Donde para cada uno de los operadores aritméticos se retorna el \textit{token} 
 
 Y del mismo modo, cada símbolo del lenguaje (operadores relacionales, palabras reservadas), tiene asociado un \textit{token} propio.
 
-La herramienta utilizada para generar el analizador léxico fue JFlex, la cuál a partir de una especificación como la presentada en el código previo reconoce los símbolos y retorna el \textit{token} correspondiente para cada uno de ellos. Por ejemplo, para una cadena de símbolos que represente una asignación:
+La herramienta utilizada para generar el analizador léxico fue JFlex, la cuál a partir de una especificación, como la presentada en el código previo, genera el scanner \textit{CTdsScanner} que es capaz de reconocer los símbolos y retornar el \textit{token} correspondiente para cada uno de ellos. Por ejemplo, para una cadena de símbolos que represente una asignación:
 \begin{center}
 	$x = y+2 ;$
 \end{center}
-Se generaría la cadena de \textit{tokens}:
+el scanner generaría la cadena de \textit{tokens}:
 \begin{center}
 	$ID \ ASSIGN\_OP \ ID \ PLUS \ INT\_LITERAL \ SEMI\_COLON$
 \end{center}
@@ -190,7 +207,7 @@ Fueron implementados una serie de tests para el analizador léxico, proporcionan
 \label{subsec:sintactico}
 A partir de los \textit{tokens} que se obtienen al finalizar el análisis léxico, se realiza el análisis sintáctico, el cuál consiste en reconocer que las sentencias están construidas correctamente de acuerdo a la especificación del lenguaje, es decir, que los símbolos aparecen en el orden correcto. 
 
-Para reconocer las fresas es necesario un parser, y la herramienta utilizada para generarlo fue CUP. A partir de la especificación de la gramática, en una forma muy similar a la presentada en la sección~\ref{sec:gramatica}, CUP puede generar el parser del lenguaje. La salida de este parser es el árbol de parsing, donde cada uno de los nodos se corresponde con algún símbolo de la gramática.
+Para reconocer las fresas es necesario un parser, y la herramienta utilizada para generarlo fue CUP. A partir de la especificación de la gramática, en una forma muy similar a la presentada en la sección~\ref{sec:gramatica}, CUP genera el parser \textit{CTdsParser} del lenguaje. La salida de este parser es el árbol de parsing, donde cada uno de los nodos se corresponde con algún símbolo de la gramática.
 \\
 
 \includegraphics[width=18cm,height=6.5cm]{sintactic1.png} \\ 
@@ -199,7 +216,11 @@ En la figura se observa la parte de la definición de la gramática correspondie
 \begin{center}
 	$ID \ ASSIGN\_OP \ ID \ PLUS \ INT\_LITERAL \ SEMI\_COLON$
 \end{center}
-correspondiente a la primera regla, 	en el árbol de parsing tendríamos:
+que se corresponde con la primer regla de ``statements'':	
+\begin{center}
+\includegraphics[width=9cm,height=0.6cm]{sintactic2.png} \\
+\end{center}
+en el árbol de parsing tendríamos:
 \\
 \begin{center}
 \includegraphics[width=13cm,height=6.5cm]{ctdsparsing.png} \\
@@ -214,7 +235,7 @@ Los tests implementados para comprobar el correcto funcionamiento del parser, fu
 \subsection{Análisis Semántico} 
 \label{subsec:semantico}
 
-Esta etapa consiste en chequear las reglas semánticas del lenguaje, entre las que se encuentran la compatibilidad de tipos, la correcta declaración y uso de los identificadores, etc. Para cada uno de estos tipos de reglas se implementó un \textit{visitor} del AST generado durante el parsing: 
+Esta etapa consiste en chequear las reglas semánticas del lenguaje, entre las que se encuentran la compatibilidad de tipos, la correcta declaración y uso de los identificadores, y todas las detalladas en la sección \ref{sec:semanticactds}. Para verificar estas reglas se implementaron \textit{visitors} del AST generado durante el parsing: 
 
 \subsubsection{Mains}
 \label{mains}
@@ -223,15 +244,43 @@ El visitor \textit{CheckMainVisitor} es el más simple de todos, ya que su objet
 \subsubsection{Declaraciones}
 \label{subsec:decls}
 
-El visitor \textit{CheckDeclarationVisitor} permite determinar si los identificadores son duplicados o no, si han sido correctamente declarados antes de ser utilizados, etc. La idea es utilizar una tabla de símbolos a modo de pila, donde a medida que se va profundizando un nuevo nivel en el AST (pasamos de una $\left\langle class\_decl \right\rangle$ a una $\left\langle field\_decl \right\rangle$, o de una $\left\langle method\_decl \right\rangle$ a un $\left\langle statement \right\rangle$) de asignación) se va a agregando tal nodo a la pila. El nivel actual es visto como una lista, donde se van agregando los nodos que no representan un nuevo nivel con respecto al actual, si no que están en el mismo \textit{scope}.
+El visitor \textit{CheckDeclarationVisitor} permite determinar si los identificadores son duplicados o no, si han sido correctamente declarados antes de ser utilizados, etc. La idea es utilizar una tabla de símbolos a modo de pila, donde a medida que se va profundizando un nuevo nivel en el AST (pasamos de  un nodo que representa una $\left\langle class\_decl \right\rangle$ a otro que representa una $\left\langle field\_decl \right\rangle$, o de uno que representa una $\left\langle method\_decl \right\rangle$ a otro que representa un $\left\langle statement \right\rangle$) de asignación, etc) se va apilando el segundo nodo a la pila. El nivel actual, por ejemplo el de $\left\langle class\_decl \right\rangle$ es visto como una lista, donde se van agregando los nodos que no representan un nuevo nivel con respecto al actual, es decir nodos que representan $\left\langle class\_decl \right\rangle$. 
+
+De esta manera, para detectar duplicados simplemente es necesario recorrer la lista del nivel actual y comprobar que no existe ningún identificador igual que el identificador del elemento actual. Y para verificar si un identificador ha sido declarado correctamente antes de ser utilizado hay que buscarlo en los niveles anteriores de la pila. 
+
+\paragraph{Testing.} Para el testing del \textit{CheckDeclarationVisitor} se implementaron tests con programas CTds correctos, para los cuáles el \textit{visitor} no debe encontrar errores, y tests con programas CTds con errores semánticos sobre declaraciones, es decir, con identificadores duplicados, variables no declaradas, métodos sin sentencia \textbf{return}, etc.
+
 
 \subsubsection{Tipos}
 \label{subsec:tipos}
 
-El visitor \textit{CheckTypeVisitor} determina si los tipos están correctamente utilizados de acuerdo a la semántica: si las asignaciones a locaciones respetan el tipo que fue utilizado en la declaración, si las operaciones son realizadas entre expresiones de tipos equivalentes, si los métodos retornan expresiones del mismo tipo que el que de su declaración, si los parámetros actuales tienen el mismo tipo que los parámetros formales, etc. 
+El visitor \textit{CheckTypeVisitor} determina si los tipos han sido definidos correctamente de acuerdo a la semántica: 
+\begin{itemize}
+	\item si las asignaciones a locaciones respetan el tipo que fue utilizado en la declaración de las locaciones
+	\item si las operaciones son realizadas entre expresiones de tipos equivalentes
+	\item si los operadores en las expresiones son compatibles con los tipos
+	\item si los métodos retornan expresiones del mismo tipo que el de su declaración
+	\item si los parámetros actuales tienen el mismo tipo que los parámetros formales
+	\item si las expresiones de las sentencias condicionales tienen tipo \textbf{boolean}
+\end{itemize}
+
+De la misma manera que para las declaraciones, se usa una tabla de símbolos a modo de pila. Para la visita de cada nodo del AST la forma de proceder es la siguiente: se realiza el chequeo de tipos si es necesario, por ejemplo en la condición de un \textbf{if} (el tipo debe ser \textbf{boolean}), y si no hay errores se continúa visitando el interior del nodo ($\left\langle block \right\rangle$ en el caso del \textbf{if}). Si se encuentra algún error, directamente se agrega a la lista de errores de tipo y no se visita el interior del nodo actual. Para los casos en los que no es necesario un chequeo de tipos, por ejemplo una  $\left\langle field\_decl \right\rangle$, se agrega el nodo a la pila (en el caso de declaraciones, ya que sus identificadores pueden ser necesarios), y se visita el nodo siguiente.
+
+\paragraph{Testing.} Para el testing del \textit{CheckTypeVisitor} se implementaron tests con programas CTds correctos y tests con programas CTds con errores de tipos, y verificando que en este último caso los errores introducidos son detectados.
 
 \subsection{Intérprete} 
 \label{subsec:interprete}
+
+En esta etapa se diseñó e implementó un intérprete de CTds, \textit{InterpreterVisitor}, el cuál a partir del AST generado en el parsing, y luego de comprobar que el programa no tiene errores semánticos (es decir, ejecutando los visitors \textit{CheckMainVisitor}, \textit{CheckDeclarationVisitor} y \textit{CheckTypeVisitor}), comienza desde el método \textbf{main} a ejecutar cada una de las sentencias respetando la semántica de cada una:
+\begin{itemize}
+\item para las asignaciones, se evalua la expresión y se asgina el valor en la locación.
+\item para las expresiones unarias, se evalua la expresión y luego se evalua el resultado con el operador
+\item para las expresiones binarias, se evalua ambas expresiones y luego se aplica el operador sobre el valor de cada una de ellas
+\item para las llamadas a métodos se evaluan los argumentos, se asignan los valores a los parámetros formales y se comienza a ejecutar las sentencias del cuerpo del método invocado
+\item para las sentencias \textbf{if} se evalua la expresión booleana, si el resultado es \textbf{true} se ejecutan las sentencias del bloque del \textbf{if}, si es \textbf{false} se ejecutan las sentencias del bloque del \textbf{else}.
+\item para las sentencias \textbf{while} mientras la evaluación de la expresión sea \textbf{true} se ejecutan las sentencias del cuerpo del ciclo.
+\end{itemize}
+Se omiten algunas sentencias ya que su ejecución es similar a alguna de las descriptas. 
 
 \subsection{Generación de Código Intermedio} 
 \label{subsec:genci}
