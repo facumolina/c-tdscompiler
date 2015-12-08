@@ -123,7 +123,7 @@ Los nombres de los identificadores son únicos en cada scope. Aunque puede haber
 \label{locaciones}
 
 Sólo hay dos clases de locaciones: variables y arreglos (locales y globales). Cada una tiene un tipo. Los arreglos son alocados en el espacio de datos estático del programa (frame de ejecución). 
-W
+
 \subsection{Asignaciones}
 \label{asignaciones}
 
@@ -310,10 +310,130 @@ La idea es, a partir del AST del programa, generar una lista de  \textit{Interme
 
 Todas las instrucciones mencionadas corresponden a objetos del tipo \textit{IntermediateCodeInstruction}.
 
-También se utilizaron dos pilas, una para ir apilando los labels de inicio de los nodos y otra para los labels de fin. Esto útil para algunos nodos, por ejemplo los que representan \textbf{for} o \textbf{while}, ya que para algunas sentencias, como \textbf{break} o \textbf{continue}, es necesario saber el label de inicio o fin para poder saltar. Por lo que con la pila, tomando el label del tope se puede determinar rápidamente a donde hay que saltar. 
+También se utilizaron dos pilas, una para ir apilando los labels de inicio de los nodos y otra para los labels de fin. Esto es útil para algunos nodos, por ejemplo los que representan \textbf{for} o \textbf{while}, ya que para algunas sentencias, como \textbf{break} o \textbf{continue}, es necesario saber el label de inicio o fin. 
 
 \subsection{Generación de Código Objeto} 
 \label{subsec:genco}
+
+Para generar el código assembler a partir del código intermedio se implementó \textit{AssemblerCodeGenerator}. El cuál lo que hace es ir recorriendo cada elemento  de la lista de \textit{IntermediateCodeStatement} creada en la etapa anterior y generando las instrucciones assembler necesarias para representar cada \textit{IntermediateCodeInstruction}. A continuación se muestran algunos ejemplos del código assembler generado para distintas sentencias:
+\subsubsection{Asignaciones}
+\begin{itemize}
+	\item CTds:
+		\begin{flushleft}
+			$\ \ \ \ x = 2 ;$
+		\end{flushleft}
+	\item Código intermedio:
+		\begin{flushleft}
+			$\ \ \ \ ASSIGN \ \ 2 \ \ x$
+		\end{flushleft}
+	\item Assembler:
+		\begin{flushleft}
+			$\ \ \ \ movl \ \ \$2, \ \ \%ebx $ \\
+			$\ \ \ \ movl \ \ \%ebx, \ \ -4(\%ebp)$	
+		\end{flushleft}
+		Donde $-4(\%ebp)$ es la dirección de memoria reservada para $x$.
+\end{itemize}
+\subsubsection{Operación aritmética con enteros}
+\begin{itemize}
+	\item CTds:
+		\begin{flushleft}
+			$\ \ \ \ y = x + 2 ;$
+		\end{flushleft}
+	\item Código intermedio:
+		\begin{flushleft}
+			$\ \ \ \ ADDI \ \ x \ \ 2 \ \ t0$ \\
+			$\ \ \ \ ASSIGN \ \ t0 \ \ y$
+		\end{flushleft}
+		Donde $t0$ es una variable temporal.
+	\item Assembler:
+		\begin{flushleft}
+			$\ \ \ \ movl \ \ -4(\%ebp), \ \ \%ebx $ \\
+			$\ \ \ \ addl \ \ \$2, \ \ \%ebx$ \\
+			$\ \ \ \ movl \ \ \%ebx, \ \ -12(\%ebp)$ \\
+			$\ \ \ \ movl \ \ -12(\%ebp), \ \ \%ebx$ \\
+			$\ \ \ \ movl \ \ \%ebx, \ \ -8(\%ebp)$	
+		\end{flushleft}
+		Donde $-4(\%ebp)$, $-8(\%ebp)$ y $-12(\%ebp)$ son las direcciones de memoria de $x$, $y$ y $t0$ respectivamente. Notar que para el resto de las operaciones aritméticas sólo cambia la instrucción $addl$ por la correspondiente.
+\end{itemize}
+\subsubsection{Operación aritmética con flotantes}
+\begin{itemize}
+	\item CTds:
+		\begin{flushleft}
+			$\ \ \ \ y = x + 2.0 ;$
+		\end{flushleft}
+	\item Código intermedio:
+		\begin{flushleft}
+			$\ \ \ \ ADDF \ \ x \ \ 2.0 \ \ t0$ \\
+			$\ \ \ \ ASSIGN \ \ t0 \ \ y$
+		\end{flushleft}
+		Donde $t0$ es una variable temporal.
+	\item Assembler:
+		\begin{flushleft}
+			$\ \ \ \ flds \ \ -4(\%ebp) $ \\
+			$\ \ \ \ fadds \ \ .label2$ \\
+			$\ \ \ \ fstps -12(\%ebp)$ \\
+			$\ \ \ \ movl \ \ -12(\%ebp), \ \ \%ebx$ \\
+			$\ \ \ \ movl \ \ \%ebx, \ \ -8(\%ebp)$	
+		\end{flushleft}
+		Donde $-4(\%ebp)$, $-8(\%ebp)$ y $-12(\%ebp)$ son las direcciones de memoria de $x$, $y$ y $t0$ respectivamente, y $.label2$ es el label para la constante $2.0$. Notar que para el resto de las operaciones aritméticas sólo cambia la instrucción $fadds$ por la correspondiente.
+\end{itemize}
+\subsubsection{Declaraciones de métodos}
+\begin{itemize}
+	\item CTds:
+		\begin{flushleft}
+			$\ \ \ \ \textbf{int} \ sum(\textbf{int} \ a,\textbf{int} \ b) \{$ \\
+			$\ \ \ \ \ \ \ \ \textbf{return} \ a + 	b \ ;$ \\
+			$\ \ \ \ \}$
+		\end{flushleft}
+	\item Código intermedio:
+		\begin{flushleft}
+			$\ \ \ \ INITML \ \ sum$ \\
+			$\ \ \ \ RESERVE \ \ amount$ \\
+			$\ \ \ \ ADDI \ \ a \ \ b \ \ t0$ \\
+			$\ \ \ \ RET \ \ t0$
+		\end{flushleft}
+		$INITML$ es la instrucción que representa el inicio de la declaración de un método, cuyo nombre en este caso es $sum$ y $RESERVE$ es la instrucción utilizada para reservar enla pila tanto espacio como el valor de $amount$.
+	\item Assembler:
+		\begin{flushleft}
+			$\ \ \ \ .globl \ \ sum$ \\
+			$\ \ \ \ .type \ \ sum, \ \ @function $ \\
+			$sum:$ \\
+			$\ \ \ \ pushl \ \ \%ebp$ \\
+			$\ \ \ \ movl \ \ \%esp, \ \ \%ebp$ \\
+			$\ \ \ \ movl \ \ 8(\%ebp), \ \ \%ebx$ \\
+			$\ \ \ \ addl \ \ 12(\%ebp), \ \ \%ebx$ \\
+			$\ \ \ \ movl \ \ \%ebx, \ \ -4(\%ebp)$ \\
+			$\ \ \ \ movl \ \ -4(\%ebp), \ \ \%eax$ \\
+			$\ \ \ \ leave$ \\
+			$\ \ \ \ ret$	
+		\end{flushleft}
+		Donde $8(\%ebp)$ y $12(\%ebp)$ son las direcciones de memoria de los parámetros $a$ y $b$ respectivamente, y $-4(\%ebp)$ es la dirección de memoria $t0$. Los resultados de los métodos siempre son almacenados en el registro $eax$. 
+\end{itemize}
+\subsubsection{LLamadas a métodos}
+\begin{itemize}
+	\item CTds:
+		\begin{flushleft}
+			$\ \ \ \ x = sum(x,y);$
+		\end{flushleft}
+	\item Código intermedio:
+		\begin{flushleft}
+			$\ \ \ \ PUSH \ \ y$ \\
+			$\ \ \ \ PUSH \ \ x$ \\			
+			$\ \ \ \ CALL \ \ sum \ \ t1$ \\
+			$\ \ \ \ ASSIGN \ \ t1 \ \ x$
+		\end{flushleft}
+		Donde $t1$ es una variable temporal.
+	\item Assembler:
+		\begin{flushleft}
+			$\ \ \ \ pushl \ \ -8(\%ebp)$ \\
+			$\ \ \ \ pushl \ \ -4(\%ebp)$ \\
+			$\ \ \ \ call \ \ sum$ \\
+			$\ \ \ \ movl \ \ \%eax, \ \ -12(\%ebp)$ \\
+			$\ \ \ \ movl \ \ -12(\%ebp), \ \ \%ebx$ \\ 
+			$\ \ \ \ movl \ \ \%ebx, \ \ -4(\%ebp)$	
+		\end{flushleft}
+		Donde $-4(\%ebp)$  $-8(\%ebp)$ y $-12(\%ebp)$ son las direcciones de memoria de $x$, $y$ y $t0$ respectivamente. Mediante $call \ \ sum$ se comienzan a ejecutar las instrucciones del cuerpo del método $sum$ descriptas anteriormente.
+\end{itemize}
 
 \subsection{Análisis y Optimización} 
 \label{subsec:opt}
