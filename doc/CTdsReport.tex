@@ -243,7 +243,7 @@ Los tests implementados para comprobar el correcto funcionamiento del parser, fu
 \subsection{Análisis Semántico} 
 \label{subsec:semantico}
 
-Esta etapa consiste en chequear las reglas semánticas del lenguaje, entre las que se encuentran la compatibilidad de tipos, la correcta declaración y uso de los identificadores, y todas las detalladas en la sección \ref{sec:semanticactds}. Para verificar estas reglas se implementaron \textit{visitors} del AST generado durante el parsing: 
+Esta etapa consiste en chequear las reglas semánticas del lenguaje, entre las que se encuentran la compatibilidad de tipos, la correcta declaración y uso de los identificadores, y todas las detalladas en la sección ref{sec:semanticactds}. Para verificar estas reglas se implementaron \textit{visitors} del AST generado durante el parsing: 
 
 \subsubsection{Mains}
 \label{mains}
@@ -334,6 +334,7 @@ Para generar el código assembler a partir del código intermedio se implementó
 		Donde $-4(\%ebp)$ es la dirección de memoria reservada para $x$.
 \end{itemize}
 \subsubsection{Operación aritmética con enteros}
+\label{subsec:enteros}
 \begin{itemize}
 	\item CTds:
 		\begin{flushleft}
@@ -409,7 +410,7 @@ Para generar el código assembler a partir del código intermedio se implementó
 		\end{flushleft}
 		Donde $8(\%ebp)$ y $12(\%ebp)$ son las direcciones de memoria de los parámetros $a$ y $b$ respectivamente, y $-4(\%ebp)$ es la dirección de memoria $t0$. Los resultados de los métodos siempre son almacenados en el registro $eax$. 
 \end{itemize}
-\subsubsection{LLamadas a métodos}
+\subsubsection{Invocaciones a métodos}
 \begin{itemize}
 	\item CTds:
 		\begin{flushleft}
@@ -432,13 +433,37 @@ Para generar el código assembler a partir del código intermedio se implementó
 			$\ \ \ \ movl \ \ -12(\%ebp), \ \ \%ebx$ \\ 
 			$\ \ \ \ movl \ \ \%ebx, \ \ -4(\%ebp)$	
 		\end{flushleft}
-		Donde $-4(\%ebp)$  $-8(\%ebp)$ y $-12(\%ebp)$ son las direcciones de memoria de $x$, $y$ y $t0$ respectivamente. Mediante $call \ \ sum$ se comienzan a ejecutar las instrucciones del cuerpo del método $sum$ descriptas anteriormente.
+		Donde $-4(\%ebp)$  $-8(\%ebp)$ y $-12(\%ebp)$ son las direcciones de memoria de $x$, $y$ y $t0$ respectivamente. Mediante $call \ sum$ se comienzan a ejecutar las instrucciones del cuerpo del método $sum$ descriptas anteriormente.
 \end{itemize}
+
+\paragraph{Compilación.} Ya que el código generado por el  \textit{AssemblerCodeGenerator} es el mismo que el generado por el lenguaje C, el \textit{GNU Assembler}, puede ser compilado utilizando \textit{gcc}. De esta manera también se puede linkear fácilmente código escrito en otros lenguajes.
 
 \subsection{Análisis y Optimización} 
 \label{subsec:opt}
 
-\section{Conclusión} 
+El objetivo de esta etapa es analizar el código para aplicar distintas posibles optimizaciones tratando de reducir los tiempos de ejecución. Algunas de las posibles optimizaciones son:
+\begin{itemize}
+	\item Resolver operaciones entre expresiones constantes. Una vez realizados los chequeos semánticos necesarios, aquellas operaciones que involucren solo constantes se pueden calcular y sólo dejar el valor total de la expresión. De esta manera se pueden reducir la cantidad de cálculos en etapas posteriores.
+	\item Reducir la cantidad de instrucciones $movl$ generadas. En muchas ocaciones, al utilizar variables temporales como en el ejemplo \textbf{Operación aritmética con enteros} de la sección anterior, se generan instrucciones $movl$ innecesarias. 
+	\item No generar código de bajo nivel para sentencias que no se ejecutan a través de ninguna traza. Por ejemplo, en una sentencia \textbf{if} con una condición que siempre evalua a \textbf{true}, las sentencias del cuerpo del \textbf{else} nunca se ejecutarán, por lo tanto no es necesario generar código para esas sentencias.
+\end{itemize}
+
+Si bien esta etapa no se llevó a cabo, es necesario notar hay que ser precisos en el análisis y las optimizaciones que se deseen efectuar, ya que realizar un excesivo análisis del código puede llevar a elevar los tiempos de compilación, y también no ser precisos en la optimización, más aún cuando se trata de código de bajo nivel, puede llevar a generar programas que dejen de respetar la semántica del lenguaje. 
+
+\section{Resultado final} 
 \label{sec:concl}
 
+Después de llevar a cabo cada una de las etapas del desarrollo del compilador $CTdsCompiler$, se concluyó con la siguiente estructura:
+\begin{center}
+\includegraphics[width=14cm,height=8cm]{CTdsCompilerDiagram.png}
+\end{center}
+donde el orden de ejecución del compilador es básicamente el mismo de las etapas, es decir:
+\begin{enumerate}
+	\item Análisis Léxico: \textit{CTdsScanner}
+	\item Análisis Sintáctico: \textit{CTdsParser}
+	\item Análisis Semántico: \textit{CheckDeclarationVisitor}, \textit{CheckTypeVisitor} y \textit{CheckMainVisitor}
+	\item Generación de Código Intermedio: \textit{IntermediateCodeGeneratorVisitor}
+	\item Generación de Código Objeto: \textit{AssemblerCodeGenerator}
+\end{enumerate}
+y sólo se va continuando a la etapa siguiente si no se obtuvo ningún error en la etapa anterior.
 \end{document}
